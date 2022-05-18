@@ -1,0 +1,45 @@
+This is BibTeX, Version 0.99c (Web2C 7.3.1)
+The top-level auxiliary file: carrier_recovery_root.aux
+The style file: ieeetr.bst
+Database file #1: ../../ece320.bib
+You've used 2 entries,
+            1876 wiz_defined-function locations,
+            491 strings with 3779 characters,
+and the built_in function-call counts, 322 in all, are:
+= -- 29
+> -- 8
+< -- 0
++ -- 4
+- -- 2
+* -- 14
+:= -- 54
+add.period$ -- 4
+call.type$ -- 2
+change.case$ -- 1
+chr.to.int$ -- 0
+cite$ -- 2
+duplicate$ -- 18
+empty$ -- 41
+format.name$ -- 2
+if$ -- 78
+int.to.chr$ -- 0
+int.to.str$ -- 2
+missing$ -- 4
+newline$ -- 12
+num.names$ -- 2
+pop$ -- 11
+preamble$ -- 2
+purify$ -- 0
+quote$ -- 0
+skip$ -- 1
+stack$ -- 0
+substring$ -- 0
+swap$ -- 2
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 0
+warning$ -- 0
+while$ -- 2
+width$ -- 3
+write$ -- 22

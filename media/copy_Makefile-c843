@@ -1,0 +1,93 @@
+###########################################################################
+# LaTeX Document Makefile
+#   Jake Janovetz & Samit Basu  (spring 1999)
+#
+# Instructions:
+#  - Change LATEX_SRC below to your main document file.
+#  - Add your list of xfig figures to XFIG_SRCS.
+#  - Set BIBTEX_FILE to your bibliography database filename.
+#  - Type "make" to build your document.  To rebuild due to changing
+#    references/citations, type "touch <your_doc>.tex" then "make".
+#
+#
+# Variables:
+#  LATEX_SRC     The main .tex file.  If there are multiple .tex files,
+#                this is the one that includes all the others.
+#  LATEX_DEPS    A list of all .tex files that are required.
+#  BIBTEX_FILE   Name of the .bib file used for bibliography information.
+#  XFIG_SRCS     All .fig files required.
+#
+#
+# Note: xfig figures should have a clear/invisible rectangle drawn
+#       around them to indicate the bounding box.
+# Note: xfig figures are converted into eps files using
+#       "Samit's Great Method":
+#   1. Generate PS/LaTeX (PS part)
+#   2. Generate PS/LaTeX (LaTeX part)
+#   3. Build the LaTeX driver file.
+#   4. Convert the driver to EPS.
+#   5. Apply Samit's Perl script.
+###########################################################################
+
+TEX        = latex
+RM         = rm -f
+
+LATEX_DEPS = surround_sound_root.tex 
+
+LATEX_SRC  = surround_sound_root.tex
+
+BIBTEX_FILE = ../../ece320.bib
+
+XFIG_SRCS  = encoder.fig \
+             decoder.fig \
+	     hilbert.fig
+
+all: $(XFIG_SRCS:%.fig=%.eps) $(LATEX_SRC:%.tex=%.dvi) Makefile
+
+ps: $(LATEX_SRC:%.tex=%.dvi)
+	dvips -o $(LATEX_SRC:%.tex=%.ps) $(LATEX_SRC:%.tex=%.dvi)
+
+clean:
+	$(RM) *.aux
+	$(RM) *.log
+	$(RM) *.blg
+	$(RM) *.bbl
+	$(RM) *.dvi
+	$(RM) *.lof
+	$(RM) *.lot
+	$(RM) *.toc
+
+###########################################################################
+# Assume EPS files come from FIG files through "Samit's Great Method".
+###########################################################################
+%.eps: %.fig
+	fig2dev -L pstex $< $*.pstex
+	fig2dev -L pstex_t -p $*.pstex $< $*.pstex_t
+	@echo -e "\
+ \\\\documentclass{article}\\\\usepackage{epsfig}  \\n \
+ \\\\setlength{\\\\textwidth}{100cm}               \\n \
+ \\\\setlength{\\\\textheight}{100cm}              \\n \
+ \\\\begin{document}                               \\n \
+ \\\\pagestyle{empty}                              \\n \
+ \\\\input{$*.pstex_t}                             \\n \
+ \\\\end{document}" >> junk_driver.tex
+	latex junk_driver.tex
+	dvips -E junk_driver.dvi -o $@
+#	dvips -E junk_driver.dvi -o junk_driver.eps
+#	./psb.pl junk_driver.eps $@
+	@rm -f $*.pstex
+	@rm -f $*.pstex_t
+	@rm -f junk_driver.*
+
+###########################################################################
+# Assume DVI files come from TEX files and depend on all EPS files.
+###########################################################################
+%.dvi: %.tex $(XFIG_SRCS:%.fig=%.eps) $(LATEX_DEPS)
+	latex $<
+
+###########################################################################
+# Use bibtex to generate a bibliography from the bibliography database.
+###########################################################################
+%.bbl: $(BIBTEX_FILE)
+	bibtex $(LATEX_SRC:%.tex=%)
+

@@ -1,0 +1,144 @@
+This is TeX, Version 3.14159 (Web2C 7.2) (format=latex 1998.10.11)  7 MAR 2000 22:10
+**serial.tex
+(serial.tex
+LaTeX2e <1998/06/01>
+Babel <v3.6j> and hyphenation patterns for american, french, german, italian, n
+ohyphenation, loaded.
+(/home/ece320/latex/handout.cls
+Document Class: handout 1998/04/29
+(/usr/share/texmf/tex/latex/fancyheadings/fancyheadings.sty
+\headrulewidth=\dimen102
+\footrulewidth=\dimen103
+\plainheadrulewidth=\dimen104
+\plainfootrulewidth=\dimen105
+\headwidth=\dimen106
+)
+(/usr/share/texmf/tex/latex/tools/hhline.sty
+Package: hhline 1994/05/23 v2.03 Table rule package (DPC)
+)
+(/usr/share/texmf/tex/latex/tools/xspace.sty
+Package: xspace 1997/10/13 v1.06 Space after command names (DPC)
+)
+(/usr/share/texmf/tex/latex/tools/array.sty
+Package: array 1998/05/13 v2.3l Tabular extension package (FMi)
+\col@sep=\dimen107
+\extrarowheight=\dimen108
+\NC@list=\toks14
+\extratabsurround=\skip41
+\backup@length=\skip42
+)
+(/usr/share/texmf/tex/latex/amsfonts/amssymb.sty
+Package: amssymb 1996/11/03 v2.2b
+
+(/usr/share/texmf/tex/latex/amsfonts/amsfonts.sty
+Package: amsfonts 1997/09/17 v2.2e
+\@emptytoks=\toks15
+\symAMSa=\mathgroup4
+\symAMSb=\mathgroup5
+LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
+(Font)                  U/euf/m/n --> U/euf/b/n on input line 133.
+))
+(/usr/share/texmf/tex/latex/base/article.cls
+Document Class: article 1998/05/05 v1.3y Standard LaTeX document class
+(/usr/share/texmf/tex/latex/base/size10.clo
+File: size10.clo 1998/05/05 v1.3y Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip43
+\belowcaptionskip=\skip44
+\bibindent=\dimen109
+))
+(/usr/share/texmf/tex/latex/misc/moreverb.sty
+Package: moreverb 1997/12/07 v2.2d.2 `more' verbatim facilities
+
+(/usr/share/texmf/tex/latex/tools/verbatim.sty
+Package: verbatim 1997/04/30 v1.5k LaTeX2e package for verbatim enhancements
+\every@verbatim=\toks16
+\verbatim@line=\toks17
+\verbatim@in@stream=\read1
+)
+\verbatim@out=\write3
+\tab@position=\count87
+\tab@size=\count88
+\listing@line=\count89
+)
+(/usr/share/texmf/tex/latex/dvips/epsf.sty
+(/usr/share/texmf/tex/plain/dvips/epsf.tex
+This is `epsf.tex' v2.7 <25 October 1996>
+\epsffilein=\read2
+\epsfframemargin=\dimen110
+\epsfframethickness=\dimen111
+\epsfrsize=\dimen112
+\epsftmp=\dimen113
+\epsftsize=\dimen114
+\epsfxsize=\dimen115
+\epsfysize=\dimen116
+\pspoints=\dimen117
+)) (/usr/share/texmf/tex/latex/eepic/epic.sty
+Enhancements to Picture Environment. Version 1.2 - Released June 1, 1986
+\@@multicnt=\count90
+\d@lta=\count91
+\@delta=\dimen118
+\@@delta=\dimen119
+\@gridcnt=\count92
+\@joinkind=\count93
+\@dotgap=\dimen120
+\@ddotgap=\dimen121
+\@x@diff=\count94
+\@y@diff=\count95
+\x@diff=\dimen122
+\y@diff=\dimen123
+\@dotbox=\box26
+\num@segments=\count96
+\num@segmentsi=\count97
+\@datafile=\read3
+) (/usr/share/texmf/tex/latex/eepic/eepic.sty
+Extension to Epic and LaTeX. Version 1.1b - Released Febrary 7, 1988
+\@gphlinewidth=\count98
+\@eepictcnt=\count99
+\@tempdimc=\dimen124
+\maxovaldiam=\dimen125
+\@filltype=\box27
+) (serial.aux)
+\openout1 = `serial.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Try loading font information for U+msa on input line 21.
+ (/usr/share/texmf/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 1995/01/05 v2.2e AMS font definitions
+)
+LaTeX Font Info:    Try loading font information for U+msb on input line 21.
+
+(/usr/share/texmf/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 1995/01/05 v2.2e AMS font definitions
+) [1
+
+] [2] [3] [4] [5] (serial.aux) ) 
+Here is how much of TeX's memory you used:
+ 942 strings out of 10906
+ 10225 string characters out of 71921
+ 57987 words of memory out of 263001
+ 3884 multiletter control sequences out of 10000+0
+ 7785 words of font info for 31 fonts, out of 200000 for 1000
+ 15 hyphenation exceptions out of 1000
+ 30i,10n,26p,223b,502s stack positions out of 300i,100n,500p,30000b,4000s
+
+Output written on serial.dvi (5 pages, 24368 bytes).

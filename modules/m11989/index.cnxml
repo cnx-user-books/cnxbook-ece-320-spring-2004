@@ -1,0 +1,372 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml">
+  <title>Video Processing Part 3: Memory Management</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>0df9db86-1c28-4c4e-8fc7-25949bfb6092</md:uuid>
+</metadata>
+
+  <content>
+
+<section id="intro">
+<title>Introduction</title>
+<para id="one">
+In this project, you will learn how to combine the use of the external and internal memory systems of the IDK, as well as how to use the TI-supplied library functions. It may seem daunting, but fear not, there are only a few commands to learn. The key is to know how to use them well.
+</para>
+<para id="two">
+The project assignment will involve copying a portion of the input image and displaying it in a different area of the screen.  The area copied to should be quickly and easily adjustable in the code. In addition to this, we will filter this copied portion and display it as well.
+</para>
+<para id="three">
+And you must refer to the following TI manuals available on the class website under the Projects section. The sections mentioned in Video Processing Lab 1 are also important.
+<list id="first">
+          <item><link url="http://www-s.ti.com/sc/psheets/spru499/spru499.pdf">IDK
+          Video Device Drivers User's Guide</link>  The Display and Capture systems are important – the figures on pages 2-7 and 3-8 are useful too.</item>
+
+          <item><link url="http://www-s.ti.com/sc/psheets/spru495a/spru495a.pdf">IDK
+          Programmer's Guide</link>.  Sections 2 and 5 are the ones needed. Section 2 is very important here. Keep a printout if necessary, it is useful as a reference.</item>
+</list>
+</para>
+</section>
+
+<section id="sec2">
+<title>Memory - The Basics</title>
+<para id="four">
+As explained in the previous lab, there are two sections of memory, internal and external. The internal is small but fast, whereas the external is large but slow. An estimate of the sizes: 25K for the internal, 16M for the external, in bytes.
+</para>
+<para id="five">
+As seen earlier, this necessitates a system of transferring memory contents between the two memory systems. For example, an input color screen is in YCbCr format. This consists of 640 X 480 pixels with 8 bits per pixel. This results in 300 Kbytes, which cannot be stored in internal memory. This same problem applies for the output buffer.
+</para>
+<para id="six">
+Thus it is best to use the external memory for storage of large chunks of data, and the internal memory for processing of smaller chunks. An example of this, as seen in the previous lab, was color conversion. In that system, we brought in the input frame line-by-line into internal memory. We then converted the color space and stored the results in internal memory as well. Following this, we transferred the results to external memory.
+</para>
+<para id="seven">
+This is the basic overview of the need for the two memory systems. Next we will discuss the setup and use of memory spaces, explaining the workings of the color conversion program
+</para>
+</section>
+
+<section id="sec3">
+<title>Memory - Setup</title>
+<para id="eight">
+Firstly, please copy the directory below to your account so you can follow the code as we go along.
+</para>
+<para id="nine">
+<code>V:\ece320\projects\colorcool</code>
+</para>
+<para id="ten">
+The program in this directory is a basic color conversion program which outputs the input frame to the display.
+</para>
+
+<section id="sec3a">
+<title>Allocating Memory Space</title>
+<para id="eleven">
+The first step in using memory is to declare it, i.e. tell the compiler to setup some space for it. This is done at the very beginning of the ‘main.c’ file. 
+<list id="second">
+<item>1. Declare the type of memory space and it’s name. Use the <code>#pragma DATA_SECTION</code> command. There are two parameters :
+<list id="second2">
+	<item>a) the name of the memory spaces</item>
+	<item>b) and the type – internal or external</item>
+</list>
+</item>
+<item>2. Then specify the byte alignment using the #pragma DATA_ALIGN command. 
+This is similar to the byte alignment in the C54x. So, to store black and white images, you would use 8 bits. But for RGB, you would use 16 bits.
+<code display="block" id="idp709472">
+// specifies name of mem space – ext_mem
+// and type as internal memory – ".image:ext_sect"
+// the data_align specification is the byte alignment – ours is
+// 8 bits
+#pragma DATA_SECTION(ext_mem,".image:ext_sect");
+#pragma DATA_ALIGN(ext_mem,8);
+
+// specifies name of mem space – int_mem
+// and type as internal memory – ".image:int_sect"
+// the data_align specification is the byte alignment – ours is 
+// 8 bits
+#pragma DATA_SECTION(int_mem,".chip_image:int_sect");
+#pragma DATA_ALIGN(int_mem, 16);
+
+</code>
+</item>
+<item>We then specify the size of the memory space. We use a variable for the basic unit size (e.g. unsigned char for 1 byte) and a length for the number of basic units needed. Please note, the memory space is not delineated by ‘image’ rows or columns, The system thinks it is one long array of data, it is up to us to process this as separate lines of ‘image’ data.
+<code display="block" id="idp711552">
+
+// specify size as  width 640
+//			    height 480
+//			    and 8 bytes per pixel
+// which could represent an RGB screen of 640 X 480 with 
+// 2 bytes per pixel. Unsigned char = 8 bytes
+unsigned char ext_mem[640 * 480 * 2];
+
+// here we create 6 lines of RGB data of 640 columns each,
+// 2 bytes per pixel 
+unsigned char int_mem[6 * 2 * 640];
+
+</code>
+</item>
+</list>
+</para>
+<para id="twelve">
+Now have a look at the main.c file and take note of the memory spaces used. The internal memory is of size 12 * 640. This single memory space is going to be used to store both the input lines from the camera image and also the results of the color conversion, thus explaining its large size. Basically the internal memory is partitioned by us for different buffers. The output data buffer needs only 4*640 bytes thus it's space starts at 
+</para>
+<para id="n13">
+<code>int_mem  + (8 * cols); 	//cols = 640</code>
+</para>
+<para id="n14">
+and ends at 12*cols – which gives us 4*cols of space. Though it is useful to partition internal memory in such a way, it is recommended not to. It is very easy to mess up the other data too, so simple, so our solution would have been to create a separate memory space of size 4*cols.
+</para>
+<para id="n15">
+The external memory, though declared here, will not be used in the program, however you may need to allocate some external memory for this project lab assignment.
+</para>
+</section>
+
+<section id="sec3b">
+<title>The INPUT and OUTPUT buffers and Main.c Details</title>
+<para id="n16">
+Good examples of the external memory use are the input buffer (captured image) and output buffer (to be placed onto the screen). There are a few steps in obtaining these buffers:
+<list id="third">
+<item>1. First, we open the capture and display devices in tskMainFunc() using 
+<code display="block" id="idm993184">
+	VDIS_open();
+	VCAP_open();
+</code>
+</item>
+<item>2. If the open calls are successful, we then call the color function to process the video feed using
+<code display="block" id="idm991808">
+	color(VCAP_NTSC, VDIS_640X480X16, numFrames);
+</code>
+This specifies: 
+<list id="third2">
+<item>the capture image format – NTSC</item>
+<item>display image format and size</item>
+<item>numFrames to run the system for – in our case one day		
+to be passed on to the color function. Please note, we merely specify the formats but do not configure the system to use these formats, yet.</item>
+</list>
+We then move on to the color(…) function within main.c
+</item>
+<item>3. First we declare some useful pointers which we will use for the various images and their components and so forth. The IMAGE structure holds a pointer to the image array (img_data). In addition, it holds integers for the number of image rows (img_rows) and number of image columns (img_cols).(Implementation Details in img_proc.h) Declare more of these structures as needed for any memory spaces you create yourself.	
+	Furthermore, “scratch_pad” structures hold information about the location and size of internal and external memories. This is another use of pointers being used to hold the locations of the different memory spaces. (Implementation Details in img_proc.h)
+We also configure the display and capture formats using 
+<code display="block" id="idm1140672">
+	VDIS_config(displayMode);
+	VCAP_config(captureMode);
+</code>
+</item>
+<item>Following this we enter the loop :
+<code display="block" id="idm72944">		  
+        for (frameCnt=0; frameCnt&lt;numFrames; frameCnt++)
+</code>
+This loop iterates for a set number of frames and processes them one at a time.  And the lines following this :
+<code display="block" id="idm71808">
+	input  = VCAP_getFrame(SYS_FOREVER);
+	output = (Uint16*)VDIS_toggleBuffs(0);
+</code>
+are used to obtain the capture and output frames. After this statement, ‘input’ will hold a pointer to external memory where the captured frame is stored. The ‘input’ pointer holds pointers ‘y1’, ‘c1’ etc to the different color component of the image. These color components are in external memory as well.
+And ‘output’ will hold a pointer to a buffer in external memory, to which we will write whatever we need to output to the screen. Basically the buffer is the size of the output frame (640 X 480 X 2 bytes/pixel), and we can write what we wish to it. And, the next time togglebufs(0) is called, everything we placed in that buffer will be put on the screen. And a new buffer will be allocated, the pointer ‘output’ will be updated and we can now write to the next frame.
+The next line 
+<code display="block" id="idm71168">
+	out_image.img_data = (unsigned char *) output;
+</code>
+updates the pointers we had setup.
+We then move on to the color_convert(..) routine. We pass the memory pointers we had created so that our color_conv program can process the input frame we obtained.
+In color_conv, we begin by setting up streams to bring in data and streams to send out data. After that we begin the color-space conversion.
+</item>
+</list>
+</para>
+
+</section>
+
+</section>
+
+<section id="sec4">
+<title>Memory Streams</title>
+<para id="n17">
+Memory streams are structures used to facilitate the transfer of data between internal and external memory. But why do we need a structure? Can’t we just do it manually?
+</para>
+<para id="n18">
+You could, but you’d spend two months to do the same work as a single stream, which only takes a few minutes (hopefully). So to cut a long story short, streams are your friends. They help remove much of the complexity associated with internal/external memory transfers.
+</para>
+<para id="n19">
+First, please make sure you’ve read the manual sections mentioned on page 1.
+There are two basic types of streams : input and output. Input is a transfer from external to internal. Output is the opposite. Think of bringing in and putting out.
+</para>
+<para id="n20">
+For each type we need to specify various parameters, such source and destination addresses, increments, size of transfer chunks and so forth. This specification is done once for each transfer session (say, once for each image transfer), using the dstr_open command. We then use dstr_get and dstr_put commands to tell the stream to bring in or put out data one chunk at a time. 
+</para>
+<section id="sec4a">
+<title>Creating and Destroying Streams</title>
+<para id="n21">
+Streams are dstr_t objects. You can create a dstr_t object and then initialize it using the dstr_open() command. Basically, start with,
+<code display="block" id="idm9200320">
+	dstr_t   o_dstr;
+</code>
+Then use the
+<code display="block" id="idm9199568"> 
+	dstr_open (…);
+</code>
+The dstr_open () specification is given in the manual. Some clarifications are made here. As an example we will consider the output stream o_dstr in color_convert(). This stream is an output stream. This stream is used to transfer data from internal memory to the screen output data buffer. (we captured the buffer's memory location in the previous section using togglebufs(), it's memory address is stored in the pointer  out_image-&gt;img_data)
+</para>
+<para id="n22">
+Arguments
+(note : out_rows  = 480, out_cols = 640): 
+<list id="big">
+<item><code display="block" id="idm9177696">
+dstr_t  *dstr
+</code>
+needs a pointer to the data stream object we wish to use. In our case this would be o_dstr.</item>
+<item><code display="block" id="idm1365664">
+void *x_data
+</code>
+takes a pointer to the location in external memory which we are using. In our program this is specified in   out_image-&gt;img_data. And since we are using an output stream, this argument specifies the Destination of the stream. (This argument is the Source for an input stream)</item>
+<item><code display="block" id="idm1364240">
+int x_size
+</code>
+takes in the size of the external data buffer to which we are writing to. This specifies the actual number of bytes of external memory we will be traversing. So this is NOT necessarily the full size of the output buffer (i.e. NOT always 640 X 480 X 2)
+For our example we are writing to the full screen hence we use 
+<code display="block" id="idm8217136">
+	(2 * out_rows * out_cols)
+</code> 
+which results in 640 X 480 X 2 bytes of data.
+
+An example of the exception is when we write to only, say, the first 10 rows of the screen. In this case we would only traverse: 10 X 640 X 2 bytes. 
+
+One more thing to note is that if you need to only write to the first 40 columns of the first 10 rows, you would still need to traverse the same amount of space and you would use 10 X 640 X 2 bytes again for this argument. In this case however, you will be skipping some of the data, as shown later.
+</item>
+<item><code display="block" id="idm8215488">
+void *i_data
+</code>
+takes a pointer to the location in internal memory we are using. In our program this is specified as   out_data. And since we are using an output stream, this argument specifies the Source of our stream. (This argument is the Destination for an input stream).
+</item>
+<item><code display="block" id="idm8260048">
+unsigned short i_size
+</code>
+is used to specify the total size of the internal memory we will be using. In our case we will be writing one line of the output screen - (4 * out_cols) 
+This is the amount we allocated earlier.
+
+This evaluates to 640 * 2 * 2 bytes. The extra ‘2’ is needed for double-buffering, which is a system used by the IDK for transferring data into internal memory. Basically, the IDM (image data manger) needs twice the amount of internal memory as data transferred. i.e. one line is worth only 640 * 2 bytes, but because of double buffering we allocate twice that for the IDM’s use. Remember this when allocating memory space for internal memory.
+</item>
+<item><code display="block" id="idm9065072">
+unsigned short quantum
+</code>
+specifies the amount of data transferred in a single dstr_get or dstr_put statement. In our case it would be (2 * out_cols). This evaluates to 640 * 2 bytes – one line of the output screen each time we use dstr_put
+
+Now, if we were transferring only part of a line, let’s take the first 40 columns of the first 10 rows example. With each dstr_put, we will output only the first forty columns of each row. Thus we are transferring 40 * 2 bytes in each call.
+
+But this can be extended further. By use of the ‘dstr_get_2D’ we can transfer multiple lines of data. So we can, say, transfer two full rows of the output screen (4 * cols)  or in our mini-example this would mean 2 * 40 * 2 bytes.
+
+Transferring of multiple lines is very useful, especially when using filters which work on 2-D ‘regions’ of data.
+</item>
+<item><code display="block" id="idm9063008">
+unsigned short multiple
+</code>
+specifies the number of lines we are transferring with each call. Now this is not the conceptual number of lines. It is the physical multiple of argument 6 that we are transferring. It is best to leave this at one and modify argument 6 above.
+</item>
+<item><code display="block" id="idm9143520">
+unsigned short stride
+</code>
+needs the amount by which to move the external memory pointer. This gives us control over how the lines are extracted. In our case, it being the simplest, we move one line at a time : 2*out_cols
+
+The stride pointer is especially useful when creating input streams. For example you can pull in overlapping lines of input. So you can pull in lines 1 and 2 in the first dstr_get(). The next dstr_get() can pull in lines 2 and 3  or you can setup it up to pull lines 3 and 4  or  4 and 5 or ….. depending on the stride.
+
+In particular, this is useful in Sobel (edge-detect) filtering, where you need data above and below a pixel to evaluate the output.
+</item>
+<item><code display="block" id="idm9142352">
+unsigned short w_size
+</code>
+is the window size. For transferring a single line at a time we would use '1' here, and the system will recognize this is as one line double-buffered. But if we needed to transfer two lines we would merely submit '2' as the argument.
+</item>
+<item><code display="block" id="idm8280256">
+dstr_t dir
+</code>
+specifies the type of stream. Use DSTR_OUTPUT for output stream and DSTR_INPUT for input stream. 
+</item>
+</list>
+</para>
+<para id="n23">
+Once a stream is created, you can use the get and put commands in a loop, to bring in or put out line/s of data. Calling dstr_get on an input stream will give you a buffer where data is present to be read off. And calling an output stream will give you a buffer to which you can write data (which will be transported out on the next dstr_put call).
+</para>
+<para id="n24">
+Remember, you have to be careful how many times you call these functions as you so not want to overflow. For example in our output example, we could call the dstr_put() upto 480 times – the number of single row transfers. Anymore, and the system may crash.
+</para>
+<para id="n25">
+Also please remember to close the stream once you are done with it, i.e after all iterations. See the color_convert function to see when we close the streams using dstr_close(…). This is VERY important, since not closing a stream will cause random crashing of your system. The system may seem to run as you expected, but it will crash, if not after 1 second, then after 1 minute or 1 hour. This problem is one of the first you should look for when debugging such symptoms.
+</para>
+<para id="n26">
+Also take a look at the streams for the input color components YCbCr to see how they are setup. You will find the figure on Device Driver Paper page 3-8 very useful in deciphering these streams. Understand them and you are set!
+</para>
+<para id="n27">
+Quick-Test: Write a stream to obtain one-line buffers for columns 31 through 50 (20 columns) of the output buffer, with 50 rows. This rectangular region should start at pixel (100, 200). So each transfer should give a buffer of 20 * 2 bytes worth of information. Think of how you’d setup the stream. 
+</para>
+</section>
+
+<section id="sec4b">
+<title>Memory Tricks and Tips</title>
+<para id="n28">
+Some simple memory tips are given here, you can come up with your own too.
+<list id="tricks">
+<item>Know how data flows in your system, this will help you increse efficiency and possibly eliminate complex stream use as well.</item>
+<item>The dstr_get_2D and dstr_put_2D are used for multiple line transfers. Use these to your advantage.</item>
+<item>You can use a simple memory ping-pong system to lessen memory use. If you need to use, say 200 X 300 rectangular region and filter it repeatedly. Then keep two memory 200 X 300 memory spaces. Write to the first, filter out to the second. Then filter the second out to the first, and so on until you're done.
+</item>
+</list>
+</para>
+</section>
+
+<section id="sec4c">
+<title>Limitations</title>
+<para id="n29">
+<list id="limits">
+<item>Space is a always a factor, especially with internal memory.</item>
+<item>It's harder to extract columns of data as opposed to rows. To transfer a column, you need to setup a different stream, one that skips a whole ‘row-1’ of data with each dstr_get statement. Then you will need to iterate this to get the pixel on each row of that column. Multiple get's are necessary because the data is not contiguous in memory.</item>
+</list>
+</para>
+</section>
+ 
+</section>
+
+<section id="sec5">
+<title>IDK Libraries</title>
+<para id="n30">
+To make your life easier, the IDK has some libraries which you can use for common image processing tasks. One such function is the Sobel (edge-detect) filter. These functions are usually hand coded in assembly and are extremely efficient, so it's best not to try to beat them.
+</para>
+<para id="n31">
+The Sobel filter is contained in the file 'sobel_h.asm' and the header file needed is 'sobel_h.h'.
+You must add the program file and it's header in the project to use them. Next you will need to create a wrapper function and use the 
+<code display="block" id="idm9790224">
+	#include "sobel_h.h"
+</code>
+directive in the wrapper function at the top. Don't forget to create a header function for your wrapper as well and add it to your project.
+</para>
+<para id="n32">
+Next you will need to setup the streams and provide the assembly function the needed parameters. Namely, it needs a pointer to 3 lines worth of input data to be processed, one line of output data, the number of columns and number of rows. The library Sobel filter works on 3 lines of input and produces 1 line of output with each call. Look at the 'sobel_h.asm' to get a better understanding of the parameters
+</para>
+<para id="n33">
+This material should be familiar from the previous lab where we explored wrapper and component functions. Now time for the assignment!
+</para>
+</section>
+
+<section id="sec6">
+<title>The Assignment</title>
+<para id="n34">
+Your assignment, should you choose to accept it is to build a simple filter system. You will start with the basic color conversion program given to you in:
+<code display="block" id="idm1862832">
+	V:\ece320\projects\colorcool
+</code>
+The system will copy the red-component of a 100 by 100 area of the screen (let’s call this area M). It will place this in a different area of the screen. Also you will need to place a Sobel filtered version of this red-area to the screen as well. The locations where the copied and filtered images are placed must be quickly modifiable on request (use variable position as parameters to wrapper functions rather than fixed coordinates)
+</para>
+
+<section id="sec6a">
+<title>Tips, Tricks and Treats</title>
+<para id="n35">
+<list id="treats">
+<item>Plan the system before hand to make efficient use of modular functions and memory</item>
+<item>For example, you only need just one “output area if size M” function to screen.</item>
+<item>Keep handy pointers to the different memory spaces.</item>
+<item>Use wrapper functions for the filter and copy_to_screen operations.</item>
+<item>Write the modules so that they can be tested independently.</item> 
+<item>Be careful with color conversion. For example when copying the red-component of M, you need only 8 bits per pixel.</item>
+<item>Keep the previous lab in mind when deciding when/where to extract the area M.</item>
+</list>
+</para>
+</section>
+
+</section>
+
+  </content>
+  
+</document>

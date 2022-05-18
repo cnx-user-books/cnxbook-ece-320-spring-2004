@@ -1,0 +1,34 @@
+
+%
+%
+% Module: lms_processor_exercise
+%
+% Author: Michael Kramer
+%
+%
+
+As with your \matlab simulation, use the designed
+elliptical IIR filter as the unknown system in your
+DSP implementation.
+
+Although the coefficient update equation is relatively
+straightforward, we strongly suggest that you look into
+the \verb+lms+ instruction available on the TI processor,
+as it is designed for just such an application and yields
+a very efficient implementation of the coefficient update
+equation.
+
+To generate noise on the DSP you can use your PN generator
+code from Lab 5, but be sure to shift the PN register contents
+up to keep the sign bit random.  (If the sign bit is always zero
+then the noise will not be zero-mean and will affect error
+convergence.)  The function generators in the lab can also 
+create a noise signal.  It is recommended that you output the desired
+signal, $y(n)$, the output of the adaptive filter, $\hat{y}(n)$,
+and the error to the D/A for display on the oscilloscope.
+
+When using the step-size suggested in the \matlab simulation
+section you should notice that the error converges {\em very} quickly.
+You will want to try an extremely small $\mu$ so that you can
+actually watch the error signal decrease towards zero in amplitude.
+

@@ -1,0 +1,124 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  <title>IIR Filtering: Exercise on TI TMS320C54x (ECE 320 specific)</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>a0b660a1-c555-4ab6-908e-c2ebe457be8c</md:uuid>
+</metadata>
+
+
+
+
+
+<content>
+    <section id="sec4">
+      <title>Implementation</title> 
+      
+      <para id="p16"> On the DSP, you will implement the
+	<term>elliptic low-pass filter</term> designed using the
+	<code>ellip</code> command from <link document="m10623">IIR
+	Filters: Filter-Design Exercise in MATLAB</link>. You should
+	not try to implement the notch filter designed in <link document="m10813">IIR Filtering: Filter-Coefficient
+	Quantization Exercise in MATLAB</link>, because it will not
+	work correctly when implemented using Direct Form II.  (Why
+	not?)
+      </para>
+      <para id="p17">
+	To implement the fourth-order filter, start with a single set
+	of second-order coefficients and implement a single
+	second-order section.  Make sure you write and review
+	pseudo-code <emphasis>before</emphasis> you begin programming.
+	Once your single second-order IIR is working properly you can
+	then proceed to code the entire fourth-order filter.
+      </para>
+      <section id="sec4a">
+	<title>Large coefficients</title>
+	<para id="p18">
+	  You may have noticed that some of the coefficients you have
+	  computed for the second-order sections are larger than 1.0
+	  in magnitude.  For any stable second-order IIR section, the
+	  magnitude of the "0" and "2" coefficients 
+	  (<m:math>
+	    <m:ci><m:msub>
+		<m:mi>a</m:mi>
+		<m:mn>0</m:mn>
+	      </m:msub></m:ci>
+	  </m:math> and 
+	  <m:math>
+	    <m:ci><m:msub>
+		<m:mi>a</m:mi>
+		<m:mn>2</m:mn>
+	      </m:msub></m:ci>
+	  </m:math>, for example) will always be less than or equal to
+	  1.0.  However, the magnitude of the "1" coefficient can be
+	  as large as 2.0.  To overcome this problem, you will have to
+	  divide the
+	  <m:math>
+	    <m:ci><m:msub>
+		<m:mi>a</m:mi>
+		<m:mn>1</m:mn>
+	      </m:msub></m:ci>
+	  </m:math> and 
+	  <m:math>
+	    <m:ci><m:msub>
+		<m:mi>b</m:mi>
+		<m:mn>1</m:mn>
+	      </m:msub></m:ci>
+	  </m:math> coefficients by two prior to saving them for your
+	  DSP code.  Then, in your implementation, you will have to
+	  compensate somehow for using half the coefficient value.
+	</para>
+      </section>
+      <section id="sec4b">
+	<title>Repeating code</title>
+	<para id="p20">
+	  Rather than write separate code for each second-order
+	  section, you are encouraged first to write one section, then
+	  write code that cycles through the second-order section code
+	  twice using the repeat structure below.  Because the IIR
+	  code will have to run inside the block I/O loop and this
+	  loop uses the <term>block repeat counter</term>
+	  (<code>BRC</code>), you must use another looping structure
+	  to avoid corrupting the <code>BRC</code>.  <note type="Note" id="idm6651536"><label>Note</label>You will have to make sure that your code uses
+	  different coefficients and states during the second cycle of
+	  the repeat loop.</note>
+	</para>
+	<code display="block" id="idm6650512">
+	  
+	  stm     (num_stages-1),AR1
+
+	  start_stage
+
+	  ; IIR code goes here
+
+	  banz    start_stage,*AR1-
+	</code>
+      </section>
+      <section id="sec4c">
+	<title>Gain</title>
+	<para id="p21">
+	  It may be necessary to add gain to the output of the system.
+	  To do this, simply shift the output left (which can be done
+	  using the <code>ld</code> opcode with its optional
+	  <code>shift</code> parameter) before saving the output to
+	  memory.
+	</para>
+      </section>
+    </section>
+
+    <section id="sec5">
+      <title>Grading</title>
+
+      <para id="p22">
+        Your grade on this lab will be split into three parts:
+      </para>
+
+      <list id="point_list" list-type="bulleted">
+        <item>1 point: Prelab</item> 
+	<item>4 points: Code.  Your DSP code implementing the
+        fourth-order IIR filter is worth 3 points and the MATLAB
+        exercise is worth 1 point.</item> 
+	<item>5 points: Oral quiz.  The quiz may cover differences
+        between FIR and IIR filters, the prelab material, and the
+        MATLAB exercise.</item>
+      </list>
+    </section>
+  </content>
+</document>

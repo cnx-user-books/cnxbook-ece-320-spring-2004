@@ -1,0 +1,71 @@
+\documentclass[11pt]{handout}
+\usepackage{moreverb}
+\usepackage{epsf}
+\usepackage{epic}
+\usepackage{eepic}
+
+\renewcommand{\coursetitle}{ECE 320}
+\renewcommand{\handouttitle}{Audio Effects: Delay}
+\renewcommand{\handoutauthor}{Daniel Sachs}
+\renewcommand{\semestertitle}{Fall 1999}
+
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+
+\setlength{\parindent}{5mm}
+\begin{document}
+
+\setlength{\baselineskip}{0.5cm}
+\setlength{\parskip}{0.5cm}
+
+\makeboxtitle
+\vspace{0.3cm}
+
+\section{Introduction}
+
+In this project lab, we will introduce the DSP memory
+map and describe how to store a large amount of data on the EVM.
+We will then use this to implement a long audio delay and an
+audio echo.
+
+The TI DSP evaluation boards we are using in this class have a large
+amount of memory - 32k words internal to the DSP itself and
+another 256k words on the EVM board. During the lab portion 
+of this course, we used only
+the board-mounted memory, and didn't really consider how much
+we were using or the differences between internal and external RAM.
+However, in order to generate large delays - which are often required in 
+audio processing - we need to use a significant portion of the
+memory on the DSP board. And in order to achieve the DSP's peak 
+performance, we need to use the on-chip memory to reduce the time
+the DSP spends waiting for data.
+
+In this lab, you will explore the memory map of the DSP board,
+and learn how to access all of the memory on the board. You will
+then apply this knowledge to build a very long delay line. Finally,
+you will modify the delay line to delay the input by an arbitrary
+number of points, then feed back the delayed signal into the input.
+This will result in a simple echo effect.
+
+\section{EVM Memory Maps}
+
+\input{evm_memory_maps_54x_tutorial}
+
+To make this lab simpler, you will
+may leave the overlay mode off and disable internal program memory for
+this lab. In Lab II, we will address switching the overlay mode on
+and off "on the fly" to achieve better performance.
+
+Note that the \verb+thru.asm+ file you have been given disables the
+overlay mode, so you won't need to worry about switching out of it
+for this lab.
+
+\section{Accessing Extended Program RAM}
+
+\input{accessing_extended_program_ram_54x_tutorial.tex}
+
+\section{Delay and Echo Implementation}
+
+\input{external_memory_processor_exercise}
+
+\end{document} 

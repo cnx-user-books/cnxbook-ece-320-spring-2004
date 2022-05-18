@@ -1,0 +1,109 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml">
+  
+  <title>Audio Effects: Using External Memory</title>
+  <metadata>
+  <md:content-id>m10480</md:content-id><md:title>Audio Effects: Using External Memory</md:title>
+  <md:abstract>You will implement three audio effects: a fixed-length delay, a variable-length delay, and a feedback-echo.  All require storing many samples in external memory.</md:abstract>
+  <md:uuid>b9bdf963-fddd-404b-ad74-65b280d9daf4</md:uuid>
+</metadata>
+
+<content>
+
+    <section id="sec1">
+      <title>Introduction</title>
+      <para id="para1">
+	Many audio effects require storing thousands of samples in
+	memory on the DSP.  Because there is not enough memory on the
+	DSP microprocessor itself to store so many samples, external
+	memory must be used.
+      </para>
+      <para id="para2">
+	In this exercise, you will use external memory to implement a
+	long audio delay and an audio echo.  Refer to <link document="m10823">Core File: Accessing External Memory on TI
+	TMS320C54x</link> for a description and examples of accessing
+	external memory.
+      </para>
+    </section>
+    <section id="sectionb">
+      <title>Delay and Echo Implementation</title>
+      <para id="para17">
+	You will implement three audio effects: a long, fixed-length
+	delay, a variable-length delay, and a feedback-echo.
+      </para>
+      <section id="section7">
+	<title>Fixed-length delay implementation</title>
+	<para id="para18">
+	  First, implement the 131,072-sample delay shown in <link target-id="fig1"/> using the <code>READPROG</code> and
+	  <code>WRITPROG</code> macros.  Use memory locations
+	  <code>010000h</code>-<code>02ffffh</code> in external
+	  Program RAM to do this; you may also want to use the
+	  <code>dld</code> and <code>dst</code> opcodes to store and
+	  retrieve the 32-bit addresses for the accumulators. Note
+	  that these two operations store the words in memory in
+	  big-endian order, with the high-order word first.
+	</para>
+	<figure id="fig1">
+	  <media id="id1164115359815" alt="">
+            <image src="../../media/delay.png" mime-type="image/png"/>
+            <image for="pdf" src="../../media/delay.eps" mime-type="application/postscript"/>
+          </media>
+	  <caption>Fixed-Length Delay</caption>
+	</figure>
+	<para id="para19">
+	  Remember that arithmetic operations that act on the
+	  accumulators, such as the <code>add</code> instruction,
+	  operate on the complete 32- or 40-bit value. Also keep in
+	  mind that since 131,072 is a power of two, you can use
+	  masking (via the <code>and</code> instruction) to implement
+	  the circular buffer easily.  This delay will be easy to
+	  verify on the oscilloscope. (How long, in seconds, do you
+	  expect this delay to be?)
+	</para>
+      </section>
+      <section id="section8">
+	<title>Variable-delay implementation</title>
+	<para id="para20">
+	  Once you have your fixed-length delay working, make a copy
+	  and modify it so that the delay can be changed to any length
+	  between zero (or one) and 131,072 samples by changing the
+	  value stored in one double-word pair in memory. You should
+	  keep the buffer length equal to 131,072 and change only your
+	  addressing of the sample being read back; it is more
+	  difficult to change the buffer size to a length that is not
+	  a power of two.
+	</para>
+	<para id="para21">
+	  Verify that your code works as expected by timing the delay
+	  from input to output and ensuring that it is approximately
+	  the correct length.
+	</para>
+      </section>
+      <section id="echo">
+	<title>Feedback-echo implementation</title>
+	<para id="paraecho1">
+	  Last, copy and modify your code so that the value taken from
+	  the end of the variable delay from <link target-id="section8">Variable-delay implementation</link> is
+	  multiplied by a gain factor and then added back into the
+	  input, and the result is both saved into the delay line and
+	  sent out to the digital-to-analog converters. <link target-id="fig2"/> shows the block diagram.  (It
+	  may be necessary to multiply the input by a gain as well to
+	  prevent overflow.)  This will make a one-tap feedback echo,
+	  an simple audio effect that sounds remarkably good.  To test
+	  the effect, connect the DSP EVM input to a CD player or
+	  microphone and connect the output to a loudspeaker.  Verify
+	  that the echo can be heard multiple times, and that the
+	  spacing between echoes matches the delay length you have
+	  chosen.
+	</para>
+	<figure id="fig2">
+	  <media id="id1164115359778" alt="">
+            <image src="../../media/echo.png" mime-type="image/png"/>
+            <image for="pdf" src="../../media/echo.eps" mime-type="application/postscript"/>
+          </media>
+	  <caption>Feedback Echo</caption>
+	</figure>
+      </section>
+    </section>
+  </content>
+  
+</document>

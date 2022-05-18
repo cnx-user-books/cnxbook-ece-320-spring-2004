@@ -1,0 +1,320 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml" xmlns:bib="http://bibtexml.sf.net/">
+  
+  <title>Surround Sound: Chamberlin Filters</title>
+  <metadata>
+  <md:content-id>m10479</md:content-id><md:title>Surround Sound: Chamberlin Filters</md:title>
+  <md:abstract>The Chamberlin filter topology can implement very narrow-band, low-pass filters.  This module provides the Chamberlin filter transfer function, an illustration of the topology, and sample frequency responses for different choices of design parameters.</md:abstract>
+  <md:uuid>f4e2ffb0-1ca8-471a-8224-8c1687ddcb64</md:uuid>
+</metadata>
+
+<content>
+    <section id="sec1">
+      <title>Introduction</title>
+
+    <para id="delete_me">
+     Chamberlin filter topology is frequently used in music
+	applications where very narrow-band, low-pass filters are
+	necessary.  Chamberlin implementations do not suffer from some
+	stability problems that arise in direct-form implementations
+	of very narrow-band responses. For more information about
+	IIR/FIR filter design for DSPs, refer to the <cite target-id="motorola"><cite-title>Motorola Application Note</cite-title></cite>.  </para>
+    </section>
+    <section id="sec2">
+      <title>Filter Topology</title>
+      <para id="para2">
+	A Chamberlin filter is a simple two-pole IIR filter with the
+	transfer function given in <link target-id="eq1"/>:
+	<equation id="eq1">
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:apply>
+		<m:ci type="fn">H</m:ci>
+		<m:ci>z</m:ci>
+	      </m:apply>
+	      <m:apply>
+		<m:divide/>
+		<m:apply>
+		  <m:times/>
+		  <m:apply>
+		    <m:power/>
+		    <m:ci>
+		      <m:msub>
+			<m:mi>F</m:mi>
+			<m:mi>z</m:mi>
+		      </m:msub>
+		    </m:ci>
+		    <m:cn>2</m:cn>
+		  </m:apply>
+		  <m:apply>
+		    <m:power/>
+		    <m:ci>z</m:ci>
+		    <m:cn>-1</m:cn>
+		  </m:apply>
+		</m:apply>
+		<m:apply>
+		  <m:plus/>
+		  <m:apply>
+		    <m:minus/>
+		    <m:cn>1</m:cn>
+		    <m:apply>
+		      <m:times/>
+		      <m:apply>
+			<m:minus/>
+			<m:cn>2</m:cn>
+			<m:apply>
+			  <m:minus/>
+			  <m:apply>
+			    <m:times/>
+			    <m:ci>
+			      <m:msub>
+				<m:mi>F</m:mi>
+				<m:mi>c</m:mi>
+			      </m:msub>
+			    </m:ci>
+			    
+			    <m:ci>
+			      <m:msub>
+				<m:mi>Q</m:mi>
+				<m:mi>c</m:mi>
+			      </m:msub>
+			    </m:ci>
+			  </m:apply>
+			  <m:apply>
+			    <m:power/>
+			    <m:ci>
+			      <m:msub>
+				<m:mi>F</m:mi>
+				<m:mi>c</m:mi>
+			      </m:msub>
+			    </m:ci>
+			    <m:cn>2</m:cn>
+			  </m:apply>
+			</m:apply>
+		      </m:apply>
+		      <m:apply>
+			<m:power/>
+			<m:ci>z</m:ci>
+			<m:cn>-1</m:cn>
+		      </m:apply>
+		    </m:apply>
+		  </m:apply>
+		  <m:apply>
+		    <m:times/>
+		    <m:apply>
+		      <m:minus/>
+		      <m:cn>1</m:cn>
+		      <m:apply>
+			<m:times/>
+			<m:ci>
+			  <m:msub>
+			    <m:mi>F</m:mi>
+			    <m:mi>c</m:mi>
+			  </m:msub>
+			</m:ci>
+			<m:ci>
+			  <m:msub>
+			    <m:mi>Q</m:mi>
+			    <m:mi>c</m:mi>
+			  </m:msub>
+			</m:ci>
+		      </m:apply>
+		    </m:apply>
+		    <m:apply>
+		      <m:power/>
+		      <m:ci>z</m:ci>
+		      <m:cn>-2</m:cn>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:apply>
+	  </m:math>
+	</equation> where
+	<m:math>
+	  <m:apply>
+	    <m:ci type="fn">F</m:ci>
+	    <m:ci>c</m:ci>
+	  </m:apply>
+	</m:math> determines the frequency where the filter peaks, and
+	<m:math>
+	  <m:apply>
+	    <m:ci>
+	      <m:msub>
+		<m:mi>Q</m:mi>
+		<m:mi>c</m:mi>
+	      </m:msub>
+	    </m:ci>
+	    <m:apply>
+	      <m:divide/>
+	      <m:cn>1</m:cn>
+	      <m:ci>Q</m:ci>
+	    </m:apply>
+	  </m:apply>
+	</m:math> determines the rolloff.  <emphasis>Q</emphasis> is
+	defined as the positive ratio of the center frequency to the
+	bandwidth.  A derivation and more detailed explanation is
+	given in <cite target-id="dattorro"><cite-title>Dattorro</cite-title></cite>.  The
+	topology of the filter is shown in <link target-id="figure1"/>.
+	Note that the final feedback stage puts a pole just inside the
+	unit circle on the real axis.  For a response with smaller
+	bandwidth, move the pole closer to the unit circle, but do not
+	move it so far that the filter becomes unstable.  Multiple
+	second-order sections can be cascaded to yield a sharper
+	rolloff.
+
+
+	</para>
+      <figure id="figure1">
+	<media id="id1171778215590" alt="">
+          <image src="../../media/chamberlin.png" mime-type="image/png"/>
+          <image for="pdf" src="../../media/chamberlin.eps" mime-type="application/postscript"/>
+        </media>
+	<caption>Chamberlin Filter Topology</caption>
+      </figure>
+      <para id="para2a">
+	<link target-id="figure2"/> and <link target-id="figure3"/> show how
+	the response of the filter varies with
+	<m:math>
+	  <m:ci>
+	    <m:msub>
+	      <m:mi>Q</m:mi>
+	      <m:mi>c</m:mi>
+	    </m:msub>
+	  </m:ci>
+	</m:math> and
+	<m:math>
+	  <m:ci>
+	    <m:msub>
+	      <m:mi>F</m:mi>
+	      <m:mi>c</m:mi>
+	    </m:msub>
+	  </m:ci>
+	</m:math>.
+      </para>
+   
+      <figure id="figure2">
+	<media id="id1171771735294" alt="">
+          <image src="../../media/chamberlinQc.png" mime-type="image/png"/>
+          <image for="pdf" src="../../media/chamberlinQc.eps" mime-type="application/postscript"/>
+        </media>
+	<caption>Chamberlin filter responses for various
+	  <m:math>
+	  <m:ci>
+	      <m:msub>
+		<m:mi>Q</m:mi>
+		<m:mi>c</m:mi>
+	      </m:msub>
+	    </m:ci>
+	  </m:math> (
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci>
+		<m:msub>
+		  <m:mi>F</m:mi>
+		  <m:mi>c</m:mi>
+		</m:msub>
+	      </m:ci>
+	      <m:cn>.3</m:cn>
+	    </m:apply>
+	  </m:math>) </caption>
+      </figure>
+      <figure id="figure3">
+	<media id="id1171771090413" alt="">
+          <image src="../../media/chamberlinFc.png" mime-type="image/png"/>
+          <image for="pdf" src="../../media/chamberlinFc.eps" mime-type="application/postscript"/>
+        </media>
+	<caption>Chamberlin filter responses for various
+	  <m:math>
+	  <m:ci>
+	      <m:msub>
+		<m:mi>F</m:mi>
+		<m:mi>c</m:mi>
+	      </m:msub>
+	    </m:ci>
+	  </m:math> (
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci>
+		<m:msub>
+		  <m:mi>Q</m:mi>
+		  <m:mi>c</m:mi>
+		</m:msub>
+	      </m:ci>
+	      <m:cn>.8333</m:cn>
+	    </m:apply>
+	  </m:math>) 
+	</caption>
+      </figure>
+      
+    </section>
+
+    <section id="sec3">
+      <title>Exercise</title>
+      <para id="para3">
+	First, create a MATLAB script that takes two parameters,
+        <m:math>
+	  <m:ci>
+	    <m:msub>
+	      <m:mi>Q</m:mi>
+	      <m:mi>c</m:mi>
+	    </m:msub>
+	  </m:ci>
+	</m:math> and
+	<m:math>
+	  <m:ci>
+	    <m:msub>
+	      <m:mi>F</m:mi>
+	      <m:mi>c</m:mi>
+	    </m:msub>
+	  </m:ci>
+	</m:math>, and plots the frequency response of a filter with a
+        transfer function given in <link target-id="eq1"/>.  Then
+        implement a Chamberlin filter on the DSP and compare its
+        performance with that of your MATLAB simulation for the same
+        values of
+        <m:math>
+	  <m:ci>
+	    <m:msub>
+	      <m:mi>Q</m:mi>
+	      <m:mi>c</m:mi>
+	    </m:msub>
+	  </m:ci>
+	</m:math> and
+	<m:math>
+	  <m:ci>
+	    <m:msub>
+	      <m:mi>F</m:mi>
+	      <m:mi>c</m:mi>
+	    </m:msub>
+	  </m:ci>
+	</m:math>.  What do you observe?
+
+     </para>
+   </section>
+
+  </content>
+  <bib:file>
+    <bib:entry id="dattorro">
+      <bib:article>
+	<bib:author>J. Dattorro</bib:author> 
+	<bib:title>Effect Design Part 1: Reverberator and Other Filters</bib:title> 
+	<bib:journal>Journal Audio Engineering Society</bib:journal>
+	<bib:year>1996</bib:year>
+	<bib:volume>vol. 45</bib:volume>
+	<bib:pages>660-684</bib:pages>
+	<bib:month>September</bib:month>
+      </bib:article>
+    </bib:entry>
+    <bib:entry id="motorola">
+      <bib:manual>
+	<bib:title>Implementing IIR/FIR Filters with
+	Motorola's DSP56000/SPS/DSP56001, Digital Signal Processors</bib:title>
+	<bib:organization>Motorola</bib:organization>
+	<bib:note>http://merchant.hibbertco.com/mtrlext/fs22/pdf-docs/motorola/apr7.rev2.pdf</bib:note>
+      </bib:manual>
+    </bib:entry>
+  </bib:file>
+</document>

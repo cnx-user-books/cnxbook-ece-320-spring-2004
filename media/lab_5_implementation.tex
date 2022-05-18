@@ -1,0 +1,149 @@
+In this lab you are to implement and optimize
+the frequency shift keying (FSK) digital transmitter
+and pseudo-noise (PN) sequence generator shown in Figure~\ref{fig:trans}.
+For the lab grade, you will
+be judged on the execution time of your system (memory usage need not
+be minimized).
+
+\section{Implementation}
+You will implement and optimize the complete system shown in
+Figure~\ref{fig:trans}
+over the next two weeks.  You may write in C, assembly, or 
+any combination of the two; choose whatever will allow you to 
+write the fastest code.  The optimization process will probably 
+be much easier if you plan for optimization before you begin 
+any programming.
+
+\subsection{PN Generator}
+Once you have planned your program strategy, implement the PN 
+generator from Figure~\ref{fig:pn-gen} and verify that it is working.  
+If you are programming in assembly, you may wish to refer 
+to the description of assembly instructions for logical operations
+in Section 2-2 of the C54x Mnemonic Instruction Set reference.  
+Initialize the shift register to one.  
+
+In testing the PN generator, you may find the file 
+\verb+v:\ece320\54x\dspclib\pn_output.mat+ helpful.  
+To use it, type \verb+load v:\ece320\54x\dspclib\pn_output+
+at the \matlab command prompt.  This will load a vector 
+\verb+pn_output+ into memory.  The vector contains 500 elements, 
+which are the first 500 output bits of the PN generator.
+Be prepared to prove to
+a TA that your PN generator works properly as part of your quiz.
+
+\subsection{Transmitter}
+For your transmitter implementation you are to use
+the data-block-to-carrier-frequency mapping in the table 
+on page~\pageref{table}
+and a digital symbol period of $T_{symb} = 32$ samples.  
+
+Viewing the transmitted signal on the oscilloscope may help 
+you determine whether your code works properly, but you should 
+check it more carefully by setting breakpoints in Code Composer and 
+using the \verb+Memory+ option from the \verb+View+ menu to view 
+the contents of memory.  The vector signal analyzer (VSA) provides 
+another method of testing. 
+
+\subsubsection{Testing with the VSA}
+
+The VSA is an instrument capable of 
+demodulating digital signals. You may use  
+the VSA to demodulate your FSK signal and display the 
+symbols received.
+
+\paragraph{Configuring the VSA:}  
+The VSA is the big HP unit on a cart in the front of the
+classroom. Plug the output from the DSP board into the ``Channel 1'' jack
+on the front of the vector signal analyzer, and then turn on the
+analyzer and follow these instructions to display your output:
+
+After powering the signal analyzer up, the display will not be in the
+correct mode. Use the following sequence of keypresses to set it up
+properly:\footnote{If this doesn't work, hit ``Save/Recall,'' F7 (Catalog), 
+point at ``ECE320.STA'' with the wheel, and hit F5 (Recall State) and
+F1 (Enter).}
+
+\begin{itemize}
+\item ``Freq'' button, followed by F1 (center), 11.025 (on the keypad), and F3 (KHz) 
+\item F2 (span), 22, and F3 (KHz) 
+\item ``Range,'' then F5 (ch1 autorange up/down)
+\item ``Instrument Mode,'' then F3 (demodulation) 
+\end{itemize}
+
+\paragraph{Viewing the signal spectrum on the VSA: }
+The VSA is also capable of displaying the spectrum of a signal.  
+Hook up the output of your PN generator to the VSA and set it up 
+properly to view the spectrum of the random sequence.  Hit ``Instrument
+Mode'' and then F1 (Scalar) to see the spectrum.  Note that you
+can also use your Lab 4 code for this purpose.
+
+Does what you see match the \matlab simulations?
+
+\subsection{Optimization}
+One purpose of this lab is to teach optimization and efficient
+code techniques. For this reason, for your lab grade 
+\emph{you will be judged primarily on the total execution
+time of your system.}  You are not required to optimize memory 
+use.  Note that by execution time we mean
+cycle count, not the number of instructions in your program.
+Remember that several of the TMS320C54xx instructions take
+more than one cycle. The multicycle instructions are primarily
+the multi-word instructions, including instructions that
+take immediates, like \verb+stm+, and instructions using 
+direct addressing of memory (such as \verb+ld *(temp),A+).
+Branch and repeat statements also require several cycles
+to execute.  Most C instructions take more than one cycle.
+The debugger can be used to
+determine the exact number of cycles used by your code; 
+ask your TA to demonstrate. 
+However, since the number of
+execution cycles used by an instruction is usually determined
+by the number of words in its encoding, the easiest way to estimate 
+the number of cycles used by your code is to count the number
+of instruction words in the \verb+.lst+ file or the disassembly
+window in the debugger.
+
+We will grade you based on the number of cycles used between
+the return from the WAITDATA call and the arrival at the next
+WAITDATA call in assembly, or the return from one WaitAudio call 
+and the arrival at the next WaitAudio call in C. If the number of 
+cycles between the two points  is variable, the maximum possible 
+number of cycles will be counted. You must use the \verb+core.asm+ file 
+in \verb+v:\ece320\54x\dsplib\core.asm+ or 
+the C core file in  \verb+v:\ece320\54x\dspclib\core.asm+ as provided 
+by the TAs;  
+{\bf these files may not be modified}. You explicitly may not change the 
+number of samples read and written by each WAITDATA or WaitAudio call! 
+We reserve the right to test your code by substituting the test vector
+core file.
+
+The student or students with the fastest code (as defined
+by the grading criteria above) will enjoy free pizza at 
+Papa Del's in the company of Professor Bresler and the TAs.
+
+
+\section{Grading}
+
+This is a two-week lab. Your prelab is due a week after the
+quiz for Lab 4, and
+the quizzing occurs two weeks after the quiz for Lab 4. 
+
+Grading for this lab will be a bit different from past labs:
+
+\begin{itemize}
+\item 1 point: Prelab
+\item 2 points: Working code, implemented from scratch in 
+	assembly language or C. 
+\item 5 points: Optimization. These points will be assigned
+	based on your cycle counts and the optimizations
+ 	you have made. 
+\item 2 points: Oral quiz. 
+\end{itemize}
+
+Your final assembly and/or C source code for the pizza 
+competition must be emailed to ece320@ews.uiuc.edu no 
+later than 11:59 PM on Friday, March 15.  
+However, your
+optimization grade will be assigned based on the 
+code turned in during your assigned lab section,
+and is subject to the usual policies for late code.

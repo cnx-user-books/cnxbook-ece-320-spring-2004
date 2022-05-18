@@ -1,0 +1,182 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml" xmlns:bib="http://bibtexml.sf.net/">
+  
+  <title>Surround Sound: Passive Encoding and Decoding</title>
+  <metadata>
+  <md:content-id>m10484</md:content-id><md:title>Surround Sound: Passive Encoding and Decoding</md:title>
+  <md:abstract>You will implement a Dolby Pro Logic encoder in MATLAB and a passive surround sound decoder on DSP hardware.</md:abstract>
+  <md:uuid>962b4aa3-eb6b-42ff-957a-7afcfa8a3578</md:uuid>
+</metadata>
+
+<content>
+    <section id="sec1">
+      <title>Introduction</title>
+      <para id="para1">
+	To begin understanding how to decode the Dolby Pro Logic
+	Surround Sound standard, you will implement a Pro Logic
+	encoder and a passive surround sound decoder.  This decoder
+	operates on many of the same principles as the more
+	sophisticated commercial systems.  Significantly more
+	technical information regarding Dolby Pro Logic can be found
+	at <cite target-id="cite1"><cite-title>Gundry</cite-title></cite>.  </para>
+    </section>
+    <section id="sec2">
+      <title>Encoder</title>
+      <para id="para2">
+	You will create a MATLAB implementation of the passive encoder
+	given by the block diagram in <link target-id="fig1"/>.
+      </para>
+      <figure id="fig1">
+	<media id="id1172333499063" alt="">
+          <image src="../../media/encoder.png" mime-type="image/png"/>
+          <image for="pdf" src="../../media/encoder.eps" mime-type="application/postscript"/>
+        </media>
+	<caption>Dolby Pro Logic Encoder</caption>
+      </figure>
+      <para id="para2a">
+	The encoder block diagram shows four input signals: Left,
+	Center, Right, and Surround.  These are audio signals created
+	by a sound designer during movie production that are intended
+	to play back from speakers positioned at the left side, at the
+	front-center, at the right side, and at the rear of a home
+	theater.  The system in the block diagram encodes these four
+	channels of audio on two output channels, <code>Lt</code> and
+	<code>Rt</code>, in such a way that an appropriately designed
+	decoder can approximately recover the original four channels.
+	Additionally, to accommodate those who do not use a surround
+	sound receiver, the encoder outputs are listenable when played
+	back on a stereo (two-channel) system, even retaining the
+	correct left-right balance.
+      </para>
+      <para id="para3">
+	The basic components of the encoder are multipliers, adders, a
+	Hilbert transform, a band-pass filter, and a Dolby Noise
+	Reduction encoder.  If you wish to implement Dolby Noise
+	Reduction, refer to <cite target-id="cite2"><cite-title>Dressler</cite-title></cite>.  The
+	other components are discussed below.
+      </para>
+      <para id="para4">
+	The transfer function of the Hilbert Transform is shown in
+	<link target-id="fig2"/>.  The Hilbert Transform is an ideal
+	(unrealizable) all-pass filter with a phase shift of
+	<m:math>
+	  <m:ci>
+	    <m:msup>
+	      <m:mn>-90</m:mn>
+	      <m:mo>°</m:mo>
+	    </m:msup>
+	  </m:ci>
+	</m:math>.  Observe that a cosine input becomes a sine and a
+	sine input becomes a negative cosine.  In MATLAB, generate a
+	cosine and sine signal of some frequency and use the
+	<code>hilbert</code> function to perform on each signal an
+	approximation to the Hilbert Transform.  (Why is the Hilbert
+	Transform unrealizable?)  The imaginary part of the Hilbert
+	Transform output (<foreign>i.e.</foreign>,
+	<code>imag(hilbert(signal))</code>) will be the
+	<m:math>
+	  <m:ci>
+	    <m:msup>
+	      <m:mn>-90</m:mn>
+	      <m:mo>°</m:mo>
+	    </m:msup>
+	  </m:ci>
+	</m:math> phase-shifted version of the original signal.  Plot
+	each signal to confirm your expectations.
+      </para>
+      <figure id="fig2">
+	<media id="id5015039" alt="">
+          <image src="../../media/hilbert.png" mime-type="image/png"/>
+          <image for="pdf" src="../../media/hilbert.eps" mime-type="application/postscript"/>
+        </media>
+	<caption>Hilbert transform transfer function</caption>
+      </figure> 
+      <para id="para5">
+	For the band-pass filter, design a second-order Butterworth
+	filter using the <code>butter</code> function in MATLAB.
+      </para>
+      <section id="subsec1">
+	<title>Generating a surround signal</title>
+	<para id="para6">
+	  Create four channels of audio to encode as a Pro Logic
+	  Surround Signal.  Use simple mixing techniques to generate
+	  the four channels.  For example, use a voice signal for the
+	  center channel and fade a roaming sound such as a helicopter
+	  from left to right and front to back.  In MATLAB, use the
+	  <code>wavread</code> and <code>auread</code> functions to
+	  read <code>.wav</code> and <code>.au</code> audio files
+	  which can be found on the Internet.
+	</para>
+      </section>
+    </section>
+    <section id="sec3">
+      <title>Decoder</title>
+      <para id="para7">
+	Implement the passive decoder shown in <link target-id="fig3"/>
+	on the DSP.  Use an appropriate time delay based on the
+	distance between the front and back speakers and the speed of
+	sound.
+      </para>
+      <figure id="fig3">
+	<media id="id1172330976615" alt="">
+          <image src="../../media/decoder.png" mime-type="image/png"/>
+          <image for="pdf" src="../../media/decoder.eps" mime-type="application/postscript"/>
+        </media>
+	<caption>Dolby Pro Logic Passive Decoder</caption>
+      </figure>
+      <para id="para8">
+	Is there significant crosstalk between the front and surround
+	speakers?  Do you get good separation between left and right
+	speakers?  Can you explain how the decoder recovers
+	approximations to the original four channels?
+      </para>
+    </section>
+    <section id="extensions">
+      <title>Extensions</title>
+      <para id="para9">
+	Differences in power levels between channels are used to
+	enhance the directional effect in what is called "active
+	decoding."  One way to find the power level in a signal is to
+	square it and pass the squared signal through a very
+	narrow-band low-pass filter 
+	(<m:math>
+	  <m:apply>
+	    <m:leq/>
+	    <m:ci>f</m:ci>
+	    <m:mrow>
+	      <m:cn>80</m:cn>
+	      <m:ci>Hz</m:ci>
+	    </m:mrow>
+	  </m:apply>
+	</m:math>).  How is the low-frequency content of the squared
+	signal related to the power of the original signal?  Remember
+	that squaring a signal in the time domain is equivalent to
+	convolving the signal with itself in the frequency domain.
+      </para>
+      <para id="para10">
+	To implement a very narrow-band low-pass filter, you may
+	consider using the Chamberlin filter topology, described in
+	<link document="m10479">Surround Sound: Chamberlin
+	Filters</link>.
+      </para>
+    </section>
+    
+
+  </content>
+  <bib:file>
+    <bib:entry id="cite1">
+      <bib:misc>
+	<bib:author>K. Gundry</bib:author>
+	<bib:title>An Introduction to Noise Reduction</bib:title>
+	<bib:note>http://www.dolby.com/ken/</bib:note>
+      </bib:misc>
+    </bib:entry>
+    <bib:entry id="cite2">
+      <bib:misc>
+	<bib:author>R. Dressler</bib:author> 
+	<bib:title>Dolby Prologic Surround Decoder Principles of
+	Operation</bib:title>
+	<bib:note>http://www.dolby.com/tech/whtppr.html</bib:note>
+      </bib:misc>
+    </bib:entry>
+  </bib:file>
+</document>

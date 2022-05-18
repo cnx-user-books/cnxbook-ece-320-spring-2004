@@ -1,0 +1,547 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml" xmlns:bib="http://bibtexml.sf.net/">
+  
+  <title>Digital Receivers: Symbol-Timing Recovery for QPSK</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>16f9c18e-24b4-4888-ad30-b58f4fddbbcb</md:uuid>
+</metadata>
+
+
+
+
+
+  <content>
+    <section id="sec1">
+      <title>Introduction</title>
+      <para id="para1">
+	This receiver exercise introduces the primary components of a
+	QPSK receiver with specific focus on symbol-timing recovery.
+	In a receiver, the received signal is first coherently
+	demodulated and low-pass filtered (see <link document="m10478">Digital Receivers: Carrier Recovery for
+	QPSK</link>) to recover the message signals (in-phase and
+	quadrature channels).  The next step for the receiver is to
+	sample the message signals at the symbol rate and decide which
+	symbols were sent.  Although the symbol rate is typically
+	known to the receiver, the receiver does not know when to
+	sample the signal for the best noise performance.  The
+	objective of the symbol-timing recovery loop is to find the
+	best time to sample the received signal.
+      </para>
+
+      <para id="para2">
+	<link target-id="fig1"/> illustrates the digital receiver system.
+	The transmitted signal coherently demodulated with both a sine
+	and cosine, then low-pass filtered to remove the
+	double-frequency terms, yielding the recovered in-phase and
+	quadrature signals,
+	<m:math>
+	  <m:apply>
+	    <m:ci type="fn" class="discrete">
+	      <m:mover>
+		<m:msub>
+		  <m:mi>s</m:mi>
+		  <m:mi>I</m:mi>
+		</m:msub>
+		<m:mo>^</m:mo>
+	      </m:mover>
+	    </m:ci>
+	    <m:ci>n</m:ci>
+	  </m:apply>
+	</m:math> and
+	
+	<m:math>
+	  <m:apply>
+	    <m:ci type="fn" class="discrete">
+	      <m:mover>
+		<m:msub>
+		  <m:mi>s</m:mi>
+		  <m:mi>Q</m:mi>
+		</m:msub>
+		<m:mo>^</m:mo>
+	      </m:mover>
+	    </m:ci>
+	    <m:ci>n</m:ci>
+	  </m:apply>
+	</m:math>.  These operations are explained in <link document="m10478">Digital Receivers: Carrier Recovery for
+	QPSK</link>.  The remaining operations are explained in this
+	module.  Both branches are fed through a <term>matched
+	filter</term> and re-sampled at the symbol rate.  The matched
+	filter is simply an FIR filter with an impulse response
+	matched to the transmitted pulse.  It aids in timing recovery
+	and helps suppress the effects of noise.
+      </para>
+
+      <figure id="fig1">
+	<media id="idp2943392" alt=""><image src="../../media/receiv.png" mime-type="image/png"/></media>
+	<caption>Digital receiver system</caption>
+      </figure>
+
+      <para id="para3">
+	If we consider the square wave shown in <link target-id="fig2"/>
+	as a potential recovered in-phase (or quadrature) signal
+	(<foreign>i.e.</foreign>, we sent the data
+	<m:math>
+	  <m:list>
+	    <m:cn>+1</m:cn>
+	    <m:cn>-1</m:cn>
+	    <m:cn>+1</m:cn>
+	    <m:cn>-1</m:cn>
+	    <m:ci>…</m:ci>
+	  </m:list>
+	</m:math>) then sampling at any point other than the symbol
+	transitions will result in the correct data.
+      </para>
+
+      <figure id="fig2">
+	<media id="idm545728" alt=""><image src="../../media/clean_bpsk.png" mime-type="image/png"/></media>
+	<caption>Clean BPSK waveform.</caption>
+      </figure>
+
+      <figure id="fig3">
+	<media id="idm5748032" alt=""><image src="../../media/noisy_bpsk.png" mime-type="image/png"/></media>
+	<caption>Noisy BPSK waveform.</caption>
+      </figure>
+
+      <para id="para4">
+	However, in the presence of noise, the received waveform may
+	look like that shown in <link target-id="fig3"/>.
+	In this case, sampling at any point other than the symbol
+	transitions does not guarantee a correct data decision.  By
+	averaging over the symbol duration we can obtain a better
+	estimate of the true data bit being sent
+	(<m:math>
+	  <m:cn>+1</m:cn>
+	</m:math> or 
+	<m:math>
+	  <m:cn>-1</m:cn> 
+	</m:math>).  The best averaging filter is the matched filter,
+	which has the impulse response
+	<m:math>
+	  <m:apply>
+	    <m:minus/>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">u</m:ci>
+	      <m:ci>n</m:ci>
+	    </m:apply>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">u</m:ci>
+	      <m:apply>
+		<m:minus/>
+		<m:ci>n</m:ci>
+		<m:ci><m:msub>
+		    <m:mi>T</m:mi>
+		    <m:mi>symb</m:mi>
+		  </m:msub></m:ci>
+	      </m:apply>
+	    </m:apply>
+	  </m:apply>
+	</m:math>,
+        where
+        <m:math>
+          <m:apply>
+          <m:ci type="fn" class="discrete">u</m:ci>
+	  <m:ci>n</m:ci>
+          </m:apply>
+	</m:math>
+        is the unit step function,
+	for the simple rectangular pulse shape used in
+        <link document="m10042">Digital
+	Transmitter: Introduction to Quadrature Phase-Shift
+	Keying</link>.  <footnote id="idp498432">For digital
+	communications schemes involving different pulse shapes, the
+	form of the matched filter will be different.  Refer to the
+	listed references for more information on symbol timing and
+	matched filters for different symbol waveforms.  </footnote><link target-id="fig4"/> and <link target-id="fig5"/> show the result of
+	passing both the clean and noisy signal through the matched
+	filter.
+      </para>
+      
+      <figure id="fig4">
+	<media id="idp1351328" alt=""><image src="../../media/clean_mf_out.png" mime-type="image/png"/></media>
+	<caption>Averaging filter output for clean input.</caption>
+      </figure>
+
+      <figure id="fig5">
+	<media id="idm6345456" alt=""><image src="../../media/noisy_mf_out.png" mime-type="image/png"/></media>
+	<caption>Averaging filter output for noisy input.</caption>
+      </figure>
+
+      <para id="para5">
+	Note that in both cases the output of the matched filter has
+	peaks where the matched filter exactly lines up with the
+	symbol, and a positive peak indicates a
+	<m:math>
+	  <m:cn>+1</m:cn>
+	</m:math> was sent; likewise, a negative peak indicates a
+	<m:math>
+	  <m:cn>-1</m:cn>
+	</m:math> was sent.  Although there is still some noise in
+	second figure, the peaks are relatively easy to distinguish
+	and yield considerably more accurate estimation of the data
+	(<m:math>
+	  <m:cn>+1</m:cn>
+	</m:math> or 
+	<m:math>
+	  <m:cn>-1</m:cn> 
+	</m:math>) than we could get by sampling the original noisy
+	signal in <link target-id="fig3"/>.
+      </para>
+      
+      <para id="para6">
+	The remainder of this handout describes a symbol-timing
+	recovery loop for a BPSK signal (equivalent to a QPSK signal
+	where only the in-phase signal is used).  As with the above
+	examples, a symbol period of
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:ci>
+	      <m:msub>
+		<m:mi>T</m:mi>
+		<m:mi>s</m:mi>
+	      </m:msub>
+	    </m:ci>
+	    <m:cn>16</m:cn>
+	  </m:apply>
+	</m:math> samples is assumed.  
+      </para>
+      
+      <section id="sec5">
+	<title>Early/late sampling</title>
+	
+	<para id="para7">
+	  One simple method for recovering symbol timing is performed
+	  using a <term>delay-locked loop</term> (<term>DLL</term>).
+	  <link target-id="fig6"/> is a block diagram of the necessary
+	  components.
+	</para>
+
+	<figure id="fig6">
+	  <media id="idp2884128" alt=""><image src="../../media/dll.png" mime-type="image/png"/></media>
+	  <caption>DLL block diagram.</caption>
+	</figure>
+
+	<para id="para8">
+	  Consider the sawtooth waveform shown in <link target-id="fig4"/>, the output of the matched filter with a
+	  square wave as input.  The goal of the DLL is to sample this
+	  waveform at the peaks in order to obtain the best
+	  performance in the presence of noise.  If it is not sampling
+	  at the peaks, we say it is sampling too early or too late.
+	</para>
+
+	<para id="para9">
+	  The DLL will find peaks without assistance from the user.
+	  When it begins running, it arbitrarily selects a sample,
+	  called the <term>on-time sample</term>, from the matched
+	  filter output.  The sample from the time-index one greater
+	  than that of the on-time sample is the <term>late
+	  sample</term>, and the sample from the time-index one less
+	  than that of the on-time sample is the <term>early
+	  sample</term>.  <link target-id="fig7"/> shows an example of
+	  the on-time, late, and early samples.  Note in this case
+	  that the on-time sample happens to be at a peak in the
+	  waveform.  <link target-id="fig8"/> and <link target-id="fig9"/>
+	  show examples in which the on-time sample comes before a
+	  peak and after the peak.
+	</para>
+
+	<para id="para9b">
+	  The on-time sample is the output of the DLL and will be used
+	  to decide the data bit sent.  To achieve the best
+	  performance in the presence of noise, the DLL must adjust
+	  the timing of on-time samples to coincide with peaks in the
+	  waveform.  It does this by changing the number of
+	  time-indices between on-time samples.  There are three
+	  cases:
+	  <list id="list1" list-type="enumerated">
+	    <item>
+	      In <link target-id="fig7"/>, the on-time sample is already
+	      at the peak, and the receiver knows that peaks are
+	      spaced by
+	      <m:math>
+		<m:ci><m:msub> 
+		    <m:mi>T</m:mi> 
+		    <m:mi>symb</m:mi>
+		  </m:msub></m:ci> 
+	      </m:math> samples.  If it then takes the next on-time
+	      sample
+	      <m:math>
+		<m:ci><m:msub>
+		    <m:mi>T</m:mi>
+		    <m:mi>symb</m:mi>
+		  </m:msub></m:ci>
+	      </m:math> samples after this on-time sample, it will be
+	      at another peak.
+	    </item>
+	    <item>
+	      In <link target-id="fig8"/>, the on-time sample is too
+	      early.  Taking an on-time sample
+	      <m:math>
+		<m:ci><m:msub>
+		    <m:mi>T</m:mi>
+		    <m:mi>symb</m:mi>
+		  </m:msub></m:ci>
+	      </m:math> samples later will be too early for the next
+	      peak.  To move closer to the next peak, the next on-time
+	      sample is taken
+	      <m:math>
+		<m:apply>
+		  <m:plus/>
+		  <m:ci><m:msub>
+		      <m:mi>T</m:mi>
+		      <m:mi>symb</m:mi>
+		    </m:msub></m:ci>
+		  <m:cn>1</m:cn>
+		</m:apply>
+	      </m:math> samples after the current on-time sample.
+	    </item>
+	    <item>
+	      In <link target-id="fig9"/>, the on-time sample is too
+	      late.  Taking an on-time sample
+	      <m:math>
+		<m:ci><m:msub> 
+		    <m:mi>T</m:mi> 
+		    <m:mi>symb</m:mi>
+		  </m:msub></m:ci> 
+	      </m:math> samples later will be too late for the next
+	      peak.  To move closer to the next peak, the next on-time
+	      sample is taken
+	      <m:math>
+		<m:apply>
+		  <m:minus/>
+		  <m:ci><m:msub>
+		      <m:mi>T</m:mi>
+		      <m:mi>symb</m:mi>
+		    </m:msub></m:ci>
+		  <m:cn>1</m:cn>
+		</m:apply>
+	      </m:math> samples after the current on-time sample.
+	    </item>
+	  </list>
+	  The offset decision block uses the on-time, early, and late
+	  samples to determine whether sampling is at a peak, too
+	  early, or too late.  It then sets the time at which the next
+	  on-time sample is taken.
+	</para>
+
+	<figure id="fig7">
+	  <media id="idm339488" alt=""><image src="../../media/ontime.png" mime-type="image/png"/></media>
+	  <caption>Sampling at a peak.</caption>
+	</figure>
+	
+	<figure id="fig8">
+	  <media id="idp1780352" alt=""><image src="../../media/early.png" mime-type="image/png"/></media>
+	  <caption>Sampling too early.</caption>
+	</figure>
+
+	<figure id="fig9">
+	  <media id="idp1335984" alt=""><image src="../../media/late.png" mime-type="image/png"/></media>
+	  <caption>Sampling too late.</caption>
+	</figure>
+
+	<para id="para10">
+	  The input to the offset decision block is 
+	  <m:math>
+	    <m:apply>
+	      <m:times/>
+	      <m:ci>on-time</m:ci>
+	      <m:apply>
+		<m:minus/>
+		<m:ci>late</m:ci>
+		<m:ci>early</m:ci>
+	      </m:apply>
+	    </m:apply>
+	  </m:math>, called the <term>decision statistic</term>.
+	  Convince yourself that when the decision statistic is
+	  positive, the on-time sample is too early, when it is zero,
+	  the on-time sample is at a peak, and when it is negative,
+	  the on-time sample is too late.  It may help to refer to
+	  <link target-id="fig7"/>, <link target-id="fig8"/>, and <link target-id="fig9"/>.  Can you see why it is necessary to
+	  multiply by the on-time sample?
+	</para>
+
+	<para id="para10b">
+	  The offset decision block could adjust the time at which the
+	  next on-time sample is taken based only on the decision
+	  statistic.  However, in the presence of noise, the decision
+	  statistic becomes a less reliable indicator.  For that
+	  reason, the DLL adds many successive decision
+	  statistics and corrects timing only if the sum
+	  exceeds a threshold; otherwise, the next on-time sample is
+	  taken
+	  <m:math>
+	    <m:ci><m:msub> 
+		<m:mi>T</m:mi> 
+		<m:mi>symb</m:mi>
+	      </m:msub></m:ci> 
+	  </m:math> samples after the current on-time sample.  The
+	  assumption is that errors in the decision statistic caused
+	  by noise, some positive and some negative, will tend to
+	  cancel each other out in the sum, and the sum will not
+	  exceed the threshold because of noise alone.  On the other
+	  hand, if the on-time sample is consistently too early or too
+	  late, the magnitude of the added decision statistics will
+	  continue to grow and exceed the threshold.  When that
+	  happens, the offset decision block will correct the timing
+	  and reset the sum to zero.
+	</para>
+      </section>
+
+      <section id="sec6">
+	<title>Sampling counter</title>
+	
+	<para id="para11">
+	  The symbol sampler maintains a counter that decrements every
+	  time a new sample arrives at the output of the matched
+	  filter.  When the counter reaches three, the matched-filter
+	  output is saved as the late sample, when the counter reaches
+	  two, the matched-filter output is saved as the on-time
+	  sample, and when the counter reaches one, the matched-filter
+	  output is saved as the early sample.  After saving the early
+	  sample, the counter is reset to either 
+	  <m:math>
+	    <m:apply>
+	      <m:minus/>
+	      <m:ci><m:msub>
+		  <m:mi>T</m:mi>
+		  <m:mi>symb</m:mi>
+		</m:msub></m:ci>
+	      <m:cn>1</m:cn>
+	    </m:apply>
+	  </m:math>, 
+	  <m:math>
+	    <m:ci><m:msub>
+		<m:mi>T</m:mi>
+		<m:mi>symb</m:mi>
+	      </m:msub></m:ci>
+	  </m:math>, or 
+	  <m:math>
+	    <m:apply>
+	      <m:plus/>
+	      <m:ci><m:msub>
+		  <m:mi>T</m:mi>
+		  <m:mi>symb</m:mi>
+		</m:msub></m:ci>
+	      <m:cn>1</m:cn>
+	    </m:apply>
+	  </m:math>, according to the offset decision block.
+	</para>
+      </section>
+    </section>
+
+    <section id="sec7">
+      <title>MATLAB Simulation</title>
+      
+      <para id="para13">
+	Because the DLL requires a feedback loop, you will
+	have to simulate it on a sample-by-sample basis in
+	MATLAB.	
+      </para>
+
+      <para id="para14">
+	Using a square wave of period 
+	<m:math>
+	  <m:cn>32</m:cn>
+	</m:math> samples as input, simulate the DLL system shown in
+	<link target-id="fig6" strength="3"/>.  Your input should be
+	several hundred periods long.  What does it model?  Set the
+	decision-statistic sum-threshold to
+	<m:math>
+	  <m:cn>1.0</m:cn>
+	</m:math>; later, you can experiment with different values.
+	How do you expect different thresholds to affect the DLL?
+      </para>
+
+      <para id="para15">
+	<link target-id="fig10"/> and <link target-id="fig11"/> show the
+	matched filter output and the on-time sampling times
+	(indicated by the impulses) for the beginning of the input,
+	before the DLL has locked on, as well as after 1000 samples
+	(about 63 symbols' worth), when symbol-timing lock has been
+	achieved.  For each case, note the distance between the
+	on-time sampling times and the peaks of the matched filter
+	output.
+      </para>
+
+      <figure id="fig10">
+	<media id="idp2607072" alt=""><image src="../../media/non_locked_dll.png" mime-type="image/png"/></media>
+	<caption>Symbol sampling before DLL lock.</caption>
+      </figure>
+
+      <figure id="fig11">
+	<media id="idp162048" alt=""><image src="../../media/locked_dll.png" mime-type="image/png"/></media>
+	<caption>Symbol sampling after DLL lock.</caption>
+      </figure>
+    </section>
+
+    <section id="sec8">
+      <title>DSP Implementation</title>
+      
+      <para id="para16">
+	Once your MATLAB simulation works, DSP implementation is
+	relatively straightforward.  To test your implementation, you
+	can use the function generator to simulate a BPSK waveform by
+	setting it to a square wave of the correct frequency for your
+	symbol period.  You should send the on-time sample and the
+	matched-filter output to the D/A to verify that your system is
+	working.
+      </para>
+    </section>
+
+    <section id="sec9">
+      <title>Extensions</title>
+
+      <para id="para17">
+	As your final project will require some modification to the
+	discussed BPSK signaling, you will want to refer to the listed
+	references, (see <cite target-id="ref1"><cite-title>Proakis</cite-title></cite> and <cite target-id="ref2"><cite-title>Blahut</cite-title></cite>, and consider some of the following
+	questions regarding such modifications:
+
+	<list id="listfinal">
+	  <item>How much noise is necessary to disrupt the
+	    DLL?</item>
+	  <item>What happens when the symbol sequence is random 
+	    (not simply 
+	    <m:math>
+	      <m:list>
+		<m:cn>+1</m:cn>
+		<m:cn>-1</m:cn>
+		<m:cn>+1</m:cn>
+		<m:cn>-1</m:cn>
+		<m:ci>…</m:ci>
+	      </m:list>
+	    </m:math>)?
+	  </item>
+	  <item>What would the matched filter look like for different
+	    symbol shapes?</item>
+	  <item>What other methods of
+	    symbol-timing recovery are available for your application?
+	  </item>
+	  <item>How does adding decision statistics help suppress the 
+	    effects of noise?
+	  </item>
+	  
+	</list>
+      </para>
+    </section>
+
+  </content>
+   <bib:file>
+    <bib:entry id="ref1">
+      <bib:book>
+	<bib:author>J.G. Proakis</bib:author> 
+	<bib:title>Digital Communications</bib:title>
+	<bib:publisher>McGraw-Hill</bib:publisher> 
+	<bib:year>1995</bib:year>
+	<bib:edition>3rd edition</bib:edition>
+      </bib:book>
+    </bib:entry>
+    <bib:entry id="ref2">
+      <bib:book>
+	<bib:author>R. Blahut</bib:author> 
+	<bib:title>Digital Transmission of Information</bib:title>
+	<bib:publisher>Addison-Wesley</bib:publisher> 
+	<bib:year>1990</bib:year>
+      </bib:book>
+    </bib:entry>
+  </bib:file>
+
+</document>

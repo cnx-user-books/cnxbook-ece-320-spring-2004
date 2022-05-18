@@ -1,0 +1,13 @@
+\newcommand{\noopsort}[1]{} \newcommand{\printfirst}[2]{#1}
+  \newcommand{\singleletter}[1]{#1} \newcommand{\switchargs}[2]{#2#1}
+\begin{thebibliography}{1}
+
+\bibitem{Proakis1}
+J.~G. Proakis, {\em Digital Communications}.
+\newblock McGraw-Hill, 3rd~ed., 1995.
+
+\bibitem{Blahut1}
+R.~Blahut, {\em Digital Transmission of Information}.
+\newblock Addison-Wesley, 1990.
+
+\end{thebibliography}

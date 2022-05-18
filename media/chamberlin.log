@@ -1,0 +1,202 @@
+This is TeX, Version 3.14159 (Web2C 7.2) (format=latex 1998.10.11)  17 APR 2000 16:18
+**chamberlin.tex
+(chamberlin.tex
+LaTeX2e <1998/06/01>
+Babel <v3.6j> and hyphenation patterns for american, french, german, italian, n
+ohyphenation, loaded.
+(/home/ece320/latex/handout.cls
+Document Class: handout 1998/04/29
+(/usr/share/texmf/tex/latex/fancyheadings/fancyheadings.sty
+\headrulewidth=\dimen102
+\footrulewidth=\dimen103
+\plainheadrulewidth=\dimen104
+\plainfootrulewidth=\dimen105
+\headwidth=\dimen106
+)
+(/usr/share/texmf/tex/latex/tools/hhline.sty
+Package: hhline 1994/05/23 v2.03 Table rule package (DPC)
+)
+(/usr/share/texmf/tex/latex/tools/xspace.sty
+Package: xspace 1997/10/13 v1.06 Space after command names (DPC)
+)
+(/usr/share/texmf/tex/latex/tools/array.sty
+Package: array 1998/05/13 v2.3l Tabular extension package (FMi)
+\col@sep=\dimen107
+\extrarowheight=\dimen108
+\NC@list=\toks14
+\extratabsurround=\skip41
+\backup@length=\skip42
+)
+(/usr/share/texmf/tex/latex/amsfonts/amssymb.sty
+Package: amssymb 1996/11/03 v2.2b
+
+(/usr/share/texmf/tex/latex/amsfonts/amsfonts.sty
+Package: amsfonts 1997/09/17 v2.2e
+\@emptytoks=\toks15
+\symAMSa=\mathgroup4
+\symAMSb=\mathgroup5
+LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
+(Font)                  U/euf/m/n --> U/euf/b/n on input line 133.
+))
+(/usr/share/texmf/tex/latex/base/article.cls
+Document Class: article 1998/05/05 v1.3y Standard LaTeX document class
+(/usr/share/texmf/tex/latex/base/size10.clo
+File: size10.clo 1998/05/05 v1.3y Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip43
+\belowcaptionskip=\skip44
+\bibindent=\dimen109
+))
+(/usr/share/texmf/tex/latex/misc/moreverb.sty
+Package: moreverb 1997/12/07 v2.2d.2 `more' verbatim facilities
+
+(/usr/share/texmf/tex/latex/tools/verbatim.sty
+Package: verbatim 1997/04/30 v1.5k LaTeX2e package for verbatim enhancements
+\every@verbatim=\toks16
+\verbatim@line=\toks17
+\verbatim@in@stream=\read1
+)
+\verbatim@out=\write3
+\tab@position=\count87
+\tab@size=\count88
+\listing@line=\count89
+)
+(/usr/share/texmf/tex/latex/tools/tabularx.sty
+Package: tabularx 1998/05/13 v2.06 `tabularx' package (DPC)
+\TX@col@width=\dimen110
+\TX@old@table=\dimen111
+\TX@old@col=\dimen112
+\TX@target=\dimen113
+\TX@delta=\dimen114
+\TX@cols=\count90
+\TX@ftn=\toks18
+)
+(/usr/share/texmf/tex/latex/dvips/epsf.sty
+(/usr/share/texmf/tex/plain/dvips/epsf.tex
+This is `epsf.tex' v2.7 <25 October 1996>
+\epsffilein=\read2
+\epsfframemargin=\dimen115
+\epsfframethickness=\dimen116
+\epsfrsize=\dimen117
+\epsftmp=\dimen118
+\epsftsize=\dimen119
+\epsfxsize=\dimen120
+\epsfysize=\dimen121
+\pspoints=\dimen122
+)) (/usr/share/texmf/tex/latex/eepic/epic.sty
+Enhancements to Picture Environment. Version 1.2 - Released June 1, 1986
+\@@multicnt=\count91
+\d@lta=\count92
+\@delta=\dimen123
+\@@delta=\dimen124
+\@gridcnt=\count93
+\@joinkind=\count94
+\@dotgap=\dimen125
+\@ddotgap=\dimen126
+\@x@diff=\count95
+\@y@diff=\count96
+\x@diff=\dimen127
+\y@diff=\dimen128
+\@dotbox=\box26
+\num@segments=\count97
+\num@segmentsi=\count98
+\@datafile=\read3
+) (/usr/share/texmf/tex/latex/eepic/eepic.sty
+Extension to Epic and LaTeX. Version 1.1b - Released Febrary 7, 1988
+\@gphlinewidth=\count99
+\@eepictcnt=\count100
+\@tempdimc=\dimen129
+\maxovaldiam=\dimen130
+\@filltype=\box27
+) (/usr/share/texmf/tex/latex/graphics/epsfig.sty
+Package: epsfig 1996/10/04 v1.7 (e)psfig emulation (SPQR)
+
+(/usr/share/texmf/tex/latex/graphics/graphicx.sty
+Package: graphicx 1997/06/09 v1.0d Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf/tex/latex/graphics/keyval.sty
+Package: keyval 1998/06/05 v1.11 key=value parser (DPC)
+\KV@toks@=\toks19
+)
+(/usr/share/texmf/tex/latex/graphics/graphics.sty
+Package: graphics 1998/05/27 v1.0h Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf/tex/fontinst/tex/trig.sty
+Package: trig 1994/10/16 v1.08 sin cos tan (DPC)
+)
+(/usr/share/texmf/tex/latex/config/graphics.cfg)
+Package graphics Info: Driver file: dvips.def on input line 85.
+
+(/usr/share/texmf/tex/latex/graphics/dvips.def
+File: dvips.def 1998/05/03 v3.0f Driver-dependant file (DPC,SPQR)
+))
+\Gin@req@height=\dimen131
+\Gin@req@width=\dimen132
+)
+\epsfxsize=\dimen133
+\epsfysize=\dimen134
+)
+(/usr/share/texmf/tex/latex/seminar/fancybox.sty
+\c@tocdepth=\count101
+
+Style option: `fancybox' v1.2 <1998/02/27> (tvz)
+\@fancybox=\box28
+\shadowsize=\dimen135
+\@Sbox=\box29
+\do@VerbBox=\toks20
+\the@fancyput=\toks21
+\this@fancyput=\toks22
+\EndVerbatimTokens=\toks23
+\Verbatim@Outfile=\write4
+\Verbatim@Infile=\read4
+) (chamberlin.aux)
+\openout1 = `chamberlin.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 21.
+LaTeX Font Info:    ... okay on input line 21.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 21.
+LaTeX Font Info:    ... okay on input line 21.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 21.
+LaTeX Font Info:    ... okay on input line 21.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 21.
+LaTeX Font Info:    ... okay on input line 21.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 21.
+LaTeX Font Info:    ... okay on input line 21.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 21.
+LaTeX Font Info:    ... okay on input line 21.
+LaTeX Font Info:    Try loading font information for U+msa on input line 26.
+ (/usr/share/texmf/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 1995/01/05 v2.2e AMS font definitions
+)
+LaTeX Font Info:    Try loading font information for U+msb on input line 26.
+
+(/usr/share/texmf/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 1995/01/05 v2.2e AMS font definitions
+)
+File: chamberlin.eps Graphic file (type eps)
+ <chamberlin.eps>
+File: chamberlinQc.eps Graphic file (type eps)
+
+<chamberlinQc.eps>
+File: chamberlinFc.eps Graphic file (type eps)
+ <chamberlinFc.eps> [1
+
+] [2] (chamberlin.aux) ) 
+Here is how much of TeX's memory you used:
+ 1474 strings out of 10906
+ 16539 string characters out of 71921
+ 67529 words of memory out of 263001
+ 4401 multiletter control sequences out of 10000+0
+ 6588 words of font info for 26 fonts, out of 200000 for 1000
+ 15 hyphenation exceptions out of 1000
+ 32i,10n,26p,227b,337s stack positions out of 300i,100n,500p,30000b,4000s
+
+Output written on chamberlin.dvi (2 pages, 12688 bytes).

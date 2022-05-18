@@ -1,0 +1,81 @@
+
+%
+%
+% Module: evm_memory_maps_54x_tutorial
+%
+% Author: Daniel Sachs
+%
+%
+
+As you've seen in previous labs, the TI C549 DSP has two seperate
+memory spaces, called Program and Data. The data space is 64k long,
+as we'd expect given the 16-bit addressing registers. The program
+space, however, can address up to 8192k words using the DSP's
+"extended addressing" modes. These modes include far calls that
+reset the full 23-bit program counter and accumulator-addressed
+transfer instructions. A small amount of space at the start of
+data memory (addresses from 0000-007F) are reserved for memory-
+mapped registers, scratchpad memory, and onboard peripherals, and a
+small amount of space (FF80-FFFF) at the end of the first 64k page of
+program memory is reserved for interrupt vectors.
+
+\subsection{Internal vs. External Memory}
+
+One of the issues we have not yet addressed is the difference between
+internal
+memory (located on the DSP chip itself) and external memory (located on the
+evaluation board). Although the external memory is much larger, the internal
+memory has several advantages: it's faster (zero wait states), and can be
+accessed several times in one cycle. External memory, on the other hand,
+can only be accessed one word at a time, and each access takes an extra
+two cycles due to the wait states required to match the 15ns memory and
+address-decode GALs to the 100MHz DSP.
+
+For your project, you want to use the internal memory to hold your code,
+filter coefficients, and small buffers you use to generate your audio
+effects. External memory should be used for large buffers that you
+only access a few times per sample, like the delay buffer described
+in this lab.
+
+\subsection{TMS320C549 DSP EVM Memory Maps}
+
+The EVM's data address space is addressed fully by the 16-bit addressing
+(AR) registers and address extension words. Program memory,
+however, is split up into 64K (16-bit) pages by the hardware. Accessing
+code or data stored outside the current page requires the use of special
+instructions. The far call instructions are required to jump to code in
+another 64k page; since we don't expect you to generate 64k words of
+code for your lab project, you shouldn't need this. However, it is useful
+to use the extra memory available in the program RAM space for storage
+of large amounts of data; this data can be used in many ways, including
+the delay buffer described in this handout.
+
+\begin{figure}[htb]\centerline  {
+\epsfxsize=.6\textwidth\
+\epsffile{ram.eps}          }
+\caption{DSP EVM memory maps}
+\label{fig: memmap}
+\end{figure}
+
+The TMS320C549 DSP we are using in ECE 320 allows its internal memory to
+be switched into the program memory space using the OVLY bit in the PMST,
+a processor state control register. If the internal RAM is switched in,
+it appears in both the data and memory address space at locations 0080h to
+07FFFh. This means that if the internal memory is switched in, anything
+written into data memory below 07FFFh will overwrite a program stored in
+the same location. In addition, copies of the internal memory also appear
+in the extended program address space, occupying locations 0080-7FFF of
+each page. Therefore, with the overlay mode set, any addresses to program
+memory locations in the form of xx0000-xx7FFF reference internal memory.
+
+With the OVLY bit set at zero, internal memory is disabled in program space
+and the program memory map includes only external memory. In this mode, the
+entire 192k words of external program RAM is accessable, although
+several wait states will be required for accessing each item of memory.
+In the overlay mode, only addresses in the ranges of 08000h to 0FF80h,
+1800h to 1FFFFh, and 28000h to 2FFFFh are available for your data; the
+remaining addresses are unmapped or map from the on-chip RAM.
+
+In addition, ensure that your code does not overwrite program memory between
+0FF80h and 0FFFFh; this area is reserved for the interrupt vector table.
+

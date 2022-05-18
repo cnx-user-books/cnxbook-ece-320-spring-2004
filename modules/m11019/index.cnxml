@@ -1,0 +1,624 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  
+  <title>Lab 0: Hardware Introduction</title>
+  <metadata>
+  <md:content-id>m11019</md:content-id><md:title>Lab 0: Hardware Introduction</md:title>
+  <md:abstract>This exercise introduces the hardware and software used in the course. By the end of this module, you should be comfortable with the basics of testing a simple real-time DSP system with Code Composer Studio, the debugging environment we will be using throughout the semester. First you will connect the laboratory equipment and test a real-time DSP system with provided code to implement an eight-tap (eight coefficient) finite impulse response (FIR) filter. With
+a working system available, you will then begin to explore the debugging software used for downloading, modifying,
+and testing your code. Finally, you will create a filter in MATLAB and use test vectors to verify the DSP's output.</md:abstract>
+  <md:uuid>60b0d4cd-f649-435a-99ef-466c8adfd6b1</md:uuid>
+</metadata>
+
+<content>
+    <section id="intro">
+      <title>Introduction</title>
+      <para id="introp1">
+        This exercise introduces the hardware and software used in
+        testing a simple DSP system.  When you complete it, you should
+        be comfortable with the basics of testing a simple real-time
+        DSP system with the debugging environment you will use
+        throughout the course.  First, you will connect the laboratory
+        equipment and test a real-time DSP system with pre-written
+        code to implement an eight-tap (eight coefficient)
+        <term>finite impulse response</term> (<term>FIR</term>)
+        filter.  With a working system available, you will then begin
+        to explore the debugging software used for downloading,
+        modifying, and testing code.  Finally, exercises are included
+        to refresh your familiarity with MATLAB.
+      </para>
+    </section>
+    
+    <section id="sec1">
+      <title>Lab Equipment</title>
+      <para id="p1">
+        This exercise assumes you have access to a laboratory station
+        equipped with a Texas Instruments TMS320C549 digital signal
+        processor chip mounted on a Spectrum Digital TMS320LC54x
+        evaluation board. The DSP evaluation module should be
+        connected to a PC running Windows and will be controlled using
+        the PC application Code Composer Studio, a debugger and
+        development environment.  Mounted on top of each DSP
+        evaluation board is a Spectrum Digital surround-sound module
+        employing a Crystal Semiconductor CS4226 codec.  This board
+        provides two analog input channels and six analog output
+        channels at the CD sample rate of 44.1 kHz.  The DSP board can
+        also communicate with user code or a terminal emulator running
+        on the PC via a serial data interface.
+      </para>
+      <para id="p2">
+        In addition to the DSP board and PC, each laboratory station
+        should also be equipped with a function generator to provide
+        test signals and an oscilloscope to display the processed
+        waveforms.
+      </para>
+      
+      <section id="sec1a">
+        <title>Step 1: Connect cables</title>
+        <para id="p3">
+          Use the provided BNC cables to connect the output of the
+          function generator to input channel 1 on the DSP evaluation
+          board.  Connect output channels 1 and 2 of the board to
+          channels 1 and 2 of the oscilloscope.  The input and output
+          connections for the DSP board are shown in <link target-id="fig1"/>.
+        </para>
+        <figure id="fig1">
+          <title>Example Hardware Setup</title>
+          <media id="id7440974" alt="">
+            <image src="../../media/setup.png" mime-type="image/png"/>
+            <image for="pdf" src="../../media/setup.eps" mime-type="application/postscript"/>
+          </media>
+        </figure>
+        <para id="p4">
+          Note that with this configuration, you will have only one
+          signal going into the DSP board and two signals coming out.
+          The output on channel 1 is the filtered input signal, and
+          the output on channel 2 is the unfiltered input signal.
+          This allows you to view the raw input and filtered output
+          simultaneously on the oscilloscope.  Turn on the function
+          generator and the oscilloscope.
+        </para>
+      </section>
+      
+      <section id="sec1b">
+        <title>Step 2: Log in</title>
+        <para id="p5">
+          Use the network ID and password provided to log into the PC
+          at your laboratory station.
+        </para>
+        
+        <para id="p5a">
+          When you log in, two shared networked drives should be
+          mapped to the computer: the <code>W:</code> drive, which
+          contains your own private network work directory, and the
+          <code>V:</code> drive, where the necessary files for ECE 420
+          are stored.  Be sure to save any files that you use for the
+          course to the <code>W:</code> drive.  Temporary files may be
+          stored in the <code>C:\TEMP</code> directory; however, since
+          files stored on the <code>C:</code> drive are accessible to
+          any user, are local to each computer, and may be erased at
+          any time, do not store course files on the <code>C:</code>
+          drive.  On the <code>V:</code> drive, the directories
+          <code>v:\ece420\54kx\dsplib\</code> and
+          <code>c:\ece420\54x\dsptools\</code> contain the files
+          necessary to assemble and test code on the TI DSP evaluation
+          boards.
+        </para>
+  
+	<para id="p5b">
+	  Although you may want to work exclusively in one or the
+	  other of lab-partners' network account, you should be
+          sure that both partners have copies of the lab assignment
+          assembly code. <note id="id9066239" type="warning">Not having the assembly
+          code during a quiz because "it's on my partner's account" is
+          <emphasis>NOT</emphasis> a valid excuse!</note> For copying
+          between partners' directory on <code>W:</code> or for
+          working outside the lab, FTP access to your files is
+          available at <code>ftp://elalpha.ece.uiuc.edu</code>.
+        </para>
+      </section>
+    </section>
+  
+    <section id="sec2">
+    <title>The Development Environment</title>
+    <para id="p8">
+	The evaluation board is controlled by the PC through the JTAG
+	interface (XDS510PP) using the application Code Composer
+	Studio.  This development environment allows the user to
+	download, run, and debug code assembled on the PC.  Work
+	through the steps below to familiarize yourself with the
+	debugging environment and real-time system using the provided
+	FIR filter code (Steps 3, 4 and 5), then verify the filter's
+	frequency response with the subsequent MATLAB exercises (Steps
+	6 and 7).
+      </para>
+
+      <section id="sec2a">
+        <title>Step 3: Assemble filter code</title>
+        <para id="p9">
+          Before you can execute and test the provided FIR filter
+          code, you must assemble the source file.  First, bring up a
+          <code>DOS</code> prompt window and create a new directory to
+          hold the files, and then copy them into your directory:
+        </para>
+        
+        <list id="codeb" list-type="bulleted">
+          <item><code>w:</code></item>
+          <item><code>mkdir lab0</code></item>
+          <item><code>cd lab0</code></item>
+          <item><code>copy v:\ece420\54x\dsplib\filter.asm .</code></item>
+          <item><code>copy v:\ece420\54x\dsplib\coef.asm .</code></item>
+        </list>
+
+	<para id="p10">
+	  Next, assemble the filter code by typing <code>asm
+	  filter</code> at the <code>DOS</code> prompt.  The
+	  assembling process first includes the FIR filter
+	  coefficients (stored in <code>coef.asm</code>) into the
+	  assembly file <code>filter.asm</code>, then compiles the
+	  result to produce an output file containing the executable
+	  binary code, <code>filter.out</code>.  
+	</para>
+      </section>
+      
+      <section id="sec2b">
+	<title>Step 4: Verify filter execution</title>
+	<para id="p11">
+	  With your filter code assembled, double-click on the Code
+	  Composer icon to open the debugging environment.  Before
+	  loading your code, you must reset the DSP board and
+	  initialize the <term>processor mode status register</term>
+	  (<term>PMST</term>).  To reset the board, select the
+	  <code>Reset</code> option from the <code>Debug</code> menu
+	  in the Code Composer application.
+	</para>
+	<para id="p12">
+	  Once the board is reset, select the <code>CPU
+	  Registers</code> option from the <code>View</code> menu,
+	  then select <code>CPU Register</code>.  This will open a
+	  sub-window at the bottom of the Code Composer application
+	  window that displays several of the DSP registers.  Look for
+	  the <code>PMST</code> register; it must be set to the
+	  hexadecimal value <code>FFE0</code> to have the DSP
+	  evaluation board work correctly.  If it is not set
+	  correctly, change the value of the <code>PMST</code>
+	  register by double-clicking on the value and making the
+	  appropriate change in the <code>Edit Register</code> window
+	  that comes up.
+	</para>
+	<para id="p13">
+	  Now, load your assembled filter file onto the DSP by
+	  selecting <code>Load Program</code> from the
+	  <code>File</code> menu.  Finally, reset the DSP again, and
+	  execute the code by selecting <code>Run</code> from the
+	  <code>Debug</code> menu.
+
+	</para>
+	<para id="p14">
+	  The program you are running accepts input from input channel
+	  1 and sends output waveforms to output channels 1 and 2 (the
+	  filtered signal and raw input, respectively).  Note that the
+	  "raw input" on output channel 2 may differ from the actual
+	  input on input channel 1, because of distortions introduced
+	  in converting the analog input to a digital signal and then
+	  back to an analog signal.  The A/D and D/A converters on the
+	  six-channel surround board operate at a sample rate of 44.1
+	  kHz and have an <term>anti-aliasing filter</term> and an
+	  <term>anti-imaging filter</term>, respectively, that in the
+	  ideal case would eliminate frequency content above 22.05
+	  kHz.  The converters on the six-channel board are also
+	  <term>AC coupled</term> and cannot pass DC signals.  On the
+	  basis of this information, what differences do you expect to
+	  see between the signals at input channel 1 and at output
+	  channel 2?
+	</para>
+	<para id="p15">
+	  Set the amplitude on the function generator to 1.0 V
+	  peak-to-peak and the pulse shape to sinusoidal.  Observe the
+	  frequency response of the filter by sweeping the input
+	  signal through the relevant frequency range.  What is the
+	  relevant frequency range for a DSP system with a sample rate
+	  of 44.1 kHz?
+	</para>
+	
+	<para id="p17">
+	  Based on the frequency response you observe, characterize
+	  the filter in terms of its type (e.g., low-pass, high-pass,
+	  band-pass) and its -6 dB (half-amplitude) cutoff frequency
+	  (or frequencies).  It may help to set the trigger on channel
+	  2 of the oscilloscope since the signal on channel 1 may go
+	  to zero.
+	</para>
+      </section>
+
+      <section id="sec2c">
+	<title>Step 5: Re-assemble and re-run with new filter</title>
+        <para id="p18">
+          Once you have determined the type of filter the DSP is
+          implementing, you are ready to repeat the process with a
+          different filter by including different coefficients during
+          the assembly process.
+          
+          Copy a second set of FIR coefficients over to your working
+          directory with the following:
+        </para>
+
+        <list id="codea" list-type="bulleted">
+          <item><code>copy coef.asm coef1.asm</code></item>
+          <item><code>copy v:\ece420\54x\dsplib\coef2.asm coef.asm</code></item>
+        </list>
+        
+	<para id="p19">
+	  You can now repeat the assembly and testing process with the
+	  new filter using the <code>asm</code> instruction at the
+	  <code>DOS</code> prompt and repeating the steps required to
+	  execute the code discussed in <link target-id="sec2b">Step
+	  4</link>.
+	</para>
+	<para id="p20a">
+	  Just as you did in <link target-id="sec2b">Step 4</link>,
+	  determine the type of filter you are running and the
+	  filter's -6 dB point by testing the system at various
+	  frequencies.
+	</para>
+      </section>
+      
+      <section id="sec2d">
+	<title>Step 6: Check filter response in MATLAB</title>
+	<para id="p20b">
+	  In this step, you will use MATLAB to verify the frequency
+	  response of your filter by copying the coefficients from the
+	  DSP to MATLAB and displaying the magnitude of the frequency
+	  response using the MATLAB command <code>freqz</code>.
+	</para>
+	<para id="p21">
+	  The FIR filter coefficients included in the file
+	  <code>coef.asm</code> are stored in memory on the DSP
+	  starting at location (in hex) <code>0x1000</code>, and each
+	  filter you have assembled and run has eight coefficients.
+	  To view the filter coefficients as signed integers, select
+	  the <code>Memory</code> option from the
+	  <code>View</code> menu to bring up a <code>Memory Window
+	  Options</code> box.  In the appropriate fields, set the
+	  starting address to <code>0x1000</code> and the format to
+	  <code>16-Bit Signed Int</code>.  Click "OK" to open a memory
+	  window displaying the contents of the specified memory
+	  locations.  The numbers along the left-hand side indicate
+	  the memory locations.
+	</para>
+	<para id="p22">
+	  In this example, the filter coefficients are placed in
+	  memory in decreasing order; that is, the last coefficient,
+	  <m:math>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">h</m:ci>
+	      <m:cn>7</m:cn>
+	    </m:apply>
+	  </m:math>, is at location <code>0x1000</code> and the first
+	  coefficient,
+	  <m:math>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">h</m:ci>
+	      <m:cn>0</m:cn>
+	    </m:apply>
+	  </m:math>, is stored at <code>0x1007</code>.
+	</para>
+	<para id="p23">
+	  Now that you can find the coefficients in memory, you are
+	  ready to use the MATLAB command <code>freqz</code> to view
+	  the filter's response.  You must create a vector in MATLAB
+	  with the filter coefficients to use the <code>freqz</code>
+	  command.  For example, if you want to view the response of
+	  the three-tap filter with coefficients -10, 20, -10 you can
+	  use the following commands in MATLAB:
+	  <list id="link2" list-type="bulleted">
+	    <item><code>h = [-10, 20, -10];</code></item>
+	    <item><code>plot(abs(freqz(h)))</code></item>
+	  </list>
+	</para>
+	<para id="p24">
+	  Note that you will have to enter eight values, the contents
+	  of memory locations <code>0x1000</code> through
+	  <code>0x1007</code>, into the coefficient vector,
+	  <code>h</code>.
+	</para>
+	<para id="p25">
+	  Does the MATLAB response compare with your experimental
+	  results?  What might account for any differences?
+	</para>
+      </section>
+      
+      <section id="sec2e">
+	<title>Step 7: Create new filter in MATLAB and verify</title>
+	<para id="p26">
+	  MATLAB scripts will be made available to you to aid in code
+	  development.  For example, one of these scripts allows you
+	  to save filter coefficients created in MATLAB in a form that
+	  can be included as part of the assembly process without
+	  having to type them in by hand (a very useful tool for long
+	  filters).  These scripts may already be installed on your
+	  computer; otherwise, download the files from the links as
+	  they are introduced.
+	</para>
+	<para id="p27">
+	  First, have MATLAB generate a "random" eight-tap filter by
+	  typing <code>h = gen_filt;</code> at a MATLAB prompt.  Then
+	  save this vector of filter coefficients by typing
+	  <code>save_coef('coef.asm',flipud(h));</code> Make sure you
+	  save the file in your own directory.  (The scripts that
+	  perform these functions are available as <link resource="gen_filt.m">gen_filt.m</link> and <link resource="save_coef.m">save_coef.m</link>)
+	</para>
+	<para id="p28">
+	  The <code>save_coef</code> MATLAB script will save the
+	  coefficients of the vector <code>h</code> into the named
+	  file, which in this case is <code>coef.asm</code>.  Note
+	  that the coefficient vector is "flipped" prior to being
+	  saved; this is to make the coefficients in
+	  <m:math>
+	    <m:ci>h</m:ci>
+	  </m:math> fill DSP memory-locations
+	  <code>0x1000</code> through
+	  <code>0x1007</code> in reverse order, as before.
+	</para>
+	<para id="p29">
+	  You may now re-assemble and re-run your new filter code as
+	  you did in <link target-id="sec2c">Step 5</link>.
+	</para>
+	<para id="p30">
+	  Notice when you load your new filter that the contents of
+	  memory locations <code>0x1000</code> through
+	  <code>0x1007</code> update accordingly.
+	</para>
+      </section>
+      <section id="sec2f">
+	<title>Step 8: Modify filter coefficients in memory</title>
+	<para id="p31">
+	  Not only can you view the contents of memory on the DSP
+	  using the debugger, you can change the contents at any
+	  memory location simply by double-clicking on the location
+	  and making the desired change in the pop-up window.
+	</para>
+	<para id="p32a">
+	  Change the contents of memory locations <code>0x1000</code>
+	  through <code>0x1007</code> such that the coefficients
+	  implement a scale and delay filter with impulse response:
+	  <equation id="eqn1">
+	    <m:math>
+	      <m:apply>
+		<m:eq/>
+		<m:apply>
+		  <m:ci type="fn" class="discrete">h</m:ci>
+		  <m:ci>n</m:ci>
+		</m:apply>
+		<m:apply>
+		  <m:times/>
+		  <m:cn>8192</m:cn>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">δ</m:ci>
+		    <m:apply>
+		      <m:minus/>
+		      <m:ci>n</m:ci>
+		      <m:cn>4</m:cn>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:math>
+	  </equation> Note that the DSP interprets the integer value
+	  of 8192 as a fractional number by dividing the integer by
+	  32,768 (the largest integer possible in a 16-bit two's
+	  complement register).  The result is an output that is
+	  delayed by four samples and scaled by a factor of
+	  <m:math>
+	    <m:apply>
+	      <m:divide/>
+	      <m:cn>1</m:cn>
+	      <m:cn>4</m:cn>
+	    </m:apply>
+	  </m:math>.  More information on the DSP's interpretation of
+	  numbers appears in <link document="m10808">Two's Complement
+	  and Fractional Arithmetic for 16-bit Processors</link>.<note id="id1165426464742" type="note">A clear and complete understanding of how the
+	  DSP interprets numbers is absolutely necessary to
+	  effectively write programs for the DSP.  Save yourself time
+	  later by learning this material now!</note>
+	</para>
+	<para id="p32b">
+	  After you have made the changes to all eight coefficients,
+	  run your new filter and use the oscilloscope to measure the
+	  delay between the raw (input) and filtered (delayed)
+	  waveforms.
+	</para>
+	<para id="p33">
+	  What happens to the output if you change either the scaling
+	  factor or the delay value?  How many seconds long is a
+	  six-sample delay?
+	</para>
+      </section>
+
+      <section id="sec2g">
+	<title>Step 9: Test-vector simulation</title>
+	<para id="p34">
+	  As a final exercise, you will find the output of the DSP for
+	  an input specified by a test vector.  Then you will compare
+	  that output with the output of a MATLAB simulation of the
+	  same filter processing the same input; if the DSP
+	  implementation is correct, the two outputs should be almost
+	  identical.  To do this, you will generate a waveform in
+	  MATLAB and save it as a test vector. You will then run your
+	  DSP filter using the test vector as input and import the
+	  results back into MATLAB for comparison with a MATLAB
+	  simulation of the filter.
+	</para>
+	<para id="p36">
+	  The first step in using test vectors is to generate an
+	  appropriate input signal.  One way to do this is to use the
+	  MATLAB function to generate a sinusoid that sweeps across a
+	  range of frequencies.  The MATLAB function
+	  <code>save_test_vector</code> (available as <link resource="save_test_vector.m">save_test_vector.m</link> can then
+	  save the sinusoidal sweep to a file you will later include
+	  in the DSP code.
+	</para>
+	<para id="p36b">
+	  Generate a sinusoidal sweep and save it to a DSP test-vector
+	  file using the following MATLAB commands:
+	</para>
+	<code id="id1165424605728" display="block">
+	  
+	  &gt;&gt; t=sweep(0.1*pi,0.9*pi,0.25,500);    % Generate a frequency sweep
+	  &gt;&gt; save_test_vector('testvect.asm',t); % Save the test vector
+	  
+	</code>
+	<para id="p37">
+	  Next, use the MATLAB <code>conv</code> command to generate a
+	  simulated response by filtering the sweep with the filter
+	  <m:math>
+	    <m:ci>h</m:ci>
+	  </m:math> you generated using <code>gen_filt</code>
+	  above. Note that this operation will yield a vector of
+	  length 507 (which is
+	  <m:math>
+	    <m:apply>
+	      <m:minus/>
+	      <m:apply>
+		<m:plus/>
+		<m:ci>n</m:ci>
+		<m:ci>m</m:ci>
+	      </m:apply>
+	      <m:cn>1</m:cn>
+	    </m:apply>
+	  </m:math>, where 
+	  <m:math>
+	    <m:ci>n</m:ci>
+	  </m:math> is the length of the filter and 
+	  <m:math>
+	    <m:ci>m</m:ci> 
+	  </m:math> is the length of the input).  You should keep only
+	  the first 500 elements of the resulting vector.
+	</para>
+	<code id="id8308347" display="block">
+	  
+	  &gt;&gt; out=conv(h,t)                  % Filter t with FIR filter h
+	  &gt;&gt; out=out(1:500)                 % Keep first 500 elements of out
+	  
+	</code>
+	<para id="p38">
+	  Now, modify the file <code>filter.asm</code> to use the
+	  alternative "test vector" core file, <link resource="vectcore.asm">vectcore.asm</link>.  Rather than
+	  accepting input from the A/D converters and sending output
+	  to the D/A, this core file takes its input from, and saves
+	  its output to, memory on the DSP.  The test vector is stored
+	  in a block of memory on the DSP evaluation board that will
+	  not interfere with your program code or data.  <note id="id8464853" type="Note"><label>Note</label>The test vector is stored in the ".etext"
+	  section.  See <link document="m10513">Core File:
+	  Introduction to Six-Channel Board for TI EVM320C54</link>
+	  for more information on the DSP memory sections, including a
+	  memory map.</note> The memory block that holds the test
+	  vector is large enough to hold a vector up to 4,000 elements
+	  long. The test vector stores data for both channels of input
+	  and from all six channels of output.
+	</para>
+	<para id="p40">
+	  To run your program with test vectors, you will need to
+	  modify <code>filter.asm</code>.  The assembly source is
+	  simply a text file and can be edited using the editor of
+	  your preference, including WordPad, Emacs, and VI.  Replace
+	  the first line of the file with two lines.  Instead of:
+	</para>
+	<code id="code1" display="block">
+	  
+	  .copy 	"v:\ece420\54x\dsplib\core.asm"
+	  
+	</code>
+	<para id="para40b">
+	  use:
+	</para>
+	<code id="code2" display="block">
+	  
+	  .copy 	"testvect.asm"
+	  .copy	"v:\ece420\54x\dsplib\vectcore.asm"
+	  
+	</code>
+	<para id="para40c">
+	  Note that, as usual, the whitespace in front of the
+	  <code>.copy</code> directive is required.
+	</para>
+	<para id="para40d">
+	  These changes will copy in the test vector you created and
+	  use the alternative core file.  After modifying your code,
+	  assemble it, then load and run the file using Code Composer
+	  as before.  After a few seconds, halt the DSP (using the
+	  <code>Halt</code> command under the <code>Debug</code> menu)
+	  and verify that the DSP has halted at a branch statement
+	  that branches to itself. In the disassembly window, the
+	  following line should be highlighted: <code>0000:611F F073 B
+	  611fh</code>.
+	</para>
+	<para id="p41">
+	  Next, save the test output file and load it back into
+	  MATLAB.  This can be done by first saving 3,000 memory
+	  elements (six channels times 500 samples) starting with
+	  location <code>0x8000</code> in program memory.  Do this by
+	  choosing <code>File-&gt;Data-&gt;Save...</code> in Code Composer
+	  Studio, then entering the filename <code>output.dat</code>
+	  and pressing <code>Enter</code>.  Next, enter
+	  <code>0x8000</code> in the Address field of the dialog box
+	  that pops up, <code>3000</code> in the Length field, and
+	  choose <code>Program</code> from the drop-down menu next to
+	  <code>Page</code>. Always make sure that you use the correct
+	  length (six times the length of the test vector) when you
+	  save your results.
+	</para>
+	<para id="p42">
+	  Last, use the <code>read_vector</code> (available as <link resource="read_vector.m">read_vector.m</link>) function to read
+	  the saved result into MATLAB. Do this using the following
+	  MATLAB command:
+	</para>
+	<code id="id1165433279397" display="block">
+	  
+	  &gt;&gt; [ch1, ch2] = read_vector('output.dat');
+	  
+	</code>
+	<para id="p43">
+	  Now, the MATLAB vector <code>ch1</code> corresponds to the
+	  filtered version of the test signal you generated. The
+	  MATLAB vector <code>ch2</code> should be nearly identical to
+	  the test vector you generated, as it was passed from the DSP
+	  system's input to its output unchanged.  <note id="id8531181" type="Note"><label>Note</label>Because of quantization error introduced in
+	  saving the test vector for the 16-bit memory of the DSP, the
+	  vector <code>ch2</code> will not be identical to the MATLAB
+	  generated test vector.  Furthermore, a bug in our test vector environment sometimes causes blocks of samples to be dropped, so the test vector output signal may have gaps.</note>
+	</para>
+	<para id="p44">
+	  After loading the output of the filter into MATLAB, compare
+	  the expected output (calculated as <code>out</code> above)
+	  and the output of the filter (in <code>ch1</code> from
+	  above). This can be done graphically by simply plotting the
+	  two curves on the same axes; for example:
+	</para>
+	<code id="id5174166" display="block">
+	  
+	  &gt;&gt; plot(out,'r'); % Plot the expected curve in red 
+	  &gt;&gt; hold on        % Plot the next plot on top of this one 
+	  &gt;&gt; plot(ch1,'g'); % Plot the expected curve in green 
+	  &gt;&gt; hold off 
+	  
+	</code>
+	<para id="p47">
+	  You should also ensure that the difference between the two
+	  outputs is near zero. This can be done by plotting the
+	  difference between the two vectors:
+	</para>
+	<code id="id3797337" display="block">
+	  
+	  &gt;&gt; plot(out(1:length(ch1))-ch1); % Plot error signal 
+	  
+	</code>
+	<para id="p48">
+	  You will observe that the two sequences are not exactly the
+	  same; this is due to the fact that the DSP computes its
+	  response to 16 bits precision, while MATLAB uses 64-bit
+	  floating point numbers for its arithmetic.  Blocks of output samples may also be missing from the test vector output due to a bug in the test vector core.  Nonetheless, the test vector environment allows one to run repeatable experiments using the same known test input for debugging.
+	</para>
+      </section>
+    </section>
+  </content>
+</document>

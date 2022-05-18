@@ -1,0 +1,250 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  <title>Multirate Filtering: Filter-Design Exercise in MATLAB</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>7a2ac130-3323-4dfd-a7a4-204f0f40dfc3</md:uuid>
+</metadata>
+
+
+
+
+  <content>
+      <section id="sec2b">
+	<title>Filter-Design Exercise</title>
+	<para id="p6">
+	  Using the zero-placement method, design the FIR filters for
+	  the multirate system in <link document="m10024" target-id="fig1">Multirate Filtering: Introduction</link>.
+	  Recall that the 
+	<m:math>
+	  <m:ci>z</m:ci>
+	</m:math>-transform of a length-
+	<m:math>
+	  <m:ci>N</m:ci>
+	</m:math> FIR filter is a polynomial in 
+	<m:math>
+	  <m:apply>
+	    <m:power/>
+	    <m:ci>z</m:ci>
+	    <m:cn>-1</m:cn>
+	  </m:apply>
+	</m:math>, and that this polynomial can be factored into
+	<m:math>
+	  <m:apply>
+	    <m:minus/>
+	    <m:ci>N</m:ci>
+	    <m:cn>1</m:cn>
+	  </m:apply>
+	</m:math> roots.
+      </para>
+      <equation id="eqn3">
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:apply>
+	      <m:ci type="fn">H</m:ci>
+	      <m:ci>z</m:ci>
+	    </m:apply>
+	    <m:apply>
+	      <m:plus/>
+	      <m:ci><m:msub>
+		  <m:mi>h</m:mi>
+		  <m:mn>0</m:mn>
+		</m:msub></m:ci>
+	      <m:apply>
+		<m:times/>
+		<m:ci><m:msub>
+		    <m:mi>h</m:mi>
+		    <m:mn>1</m:mn>
+		  </m:msub></m:ci>
+		<m:apply>
+		  <m:power/>
+		  <m:ci>z</m:ci>
+		  <m:cn>-1</m:cn>
+		</m:apply>
+	      </m:apply>
+	      <m:apply>
+		<m:times/>
+		<m:ci><m:msub>
+		    <m:mi>h</m:mi>
+		    <m:mn>2</m:mn>
+		  </m:msub></m:ci>
+		<m:apply>
+		  <m:power/>
+		  <m:ci>z</m:ci>
+		  <m:cn>-2</m:cn>
+		</m:apply>
+	      </m:apply>
+	      <m:ci>⋯</m:ci>
+	    </m:apply>
+	    <m:apply>
+	      <m:times/>
+	      <m:apply>
+		<m:minus/>
+		<m:ci><m:msub>
+		    <m:mi>z</m:mi>
+		    <m:mn>1</m:mn>
+		  </m:msub></m:ci>
+		<m:apply>
+		  <m:power/>
+		  <m:ci>z</m:ci>
+		  <m:cn>-1</m:cn>
+		</m:apply>
+	      </m:apply>
+	      <m:apply>
+		<m:minus/>
+		<m:ci><m:msub>
+		    <m:mi>z</m:mi>
+		    <m:mn>2</m:mn>
+		  </m:msub></m:ci>
+		<m:apply>
+		  <m:power/>
+		  <m:ci>z</m:ci>
+		  <m:cn>-1</m:cn>
+		</m:apply>
+	      </m:apply>
+	      <m:apply>
+		<m:minus/>
+		<m:ci><m:msub>
+		    <m:mi>z</m:mi>
+		    <m:mn>3</m:mn>
+		  </m:msub></m:ci>
+		<m:apply>
+		  <m:power/>
+		  <m:ci>z</m:ci>
+		  <m:cn>-1</m:cn>
+		</m:apply>
+	      </m:apply>
+	      <m:ci>⋯</m:ci>
+	    </m:apply>
+	  </m:apply>
+	</m:math>
+      </equation>
+
+      <para id="p7">
+	Use this relation to design a low-pass filter
+	(for the anti-aliasing and anti-imaging filters of the multirate 
+	system) by placing twelve
+	complex zeros on the unit circle at
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:apply>
+		<m:times/>
+		<m:cn>3</m:cn>
+		<m:pi/>
+	      </m:apply>
+	      <m:cn>8</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>,
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:pi/>
+	      <m:cn>2</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>,
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:apply>
+		<m:times/>
+		<m:cn>5</m:cn>
+		<m:pi/>
+	      </m:apply>
+	      <m:cn>8</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>, 
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:apply>
+		<m:times/>
+		<m:cn>3</m:cn>
+		<m:pi/>
+	      </m:apply>
+	      <m:cn>4</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>, 
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:apply>
+		<m:times/>
+		<m:cn>7</m:cn>
+		<m:pi/>
+	      </m:apply>
+	      <m:cn>8</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>, and 
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:pi/>
+	  </m:apply>
+	</m:math>.  This filter that you have just designed will
+	serve for both FIR 1 and FIR 3.  For filter FIR 2 (operating
+	at the decimated rate), use four equally-spaced zeros on the
+	unit circle located at
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:pi/>
+	      <m:cn>4</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math> and 
+	<m:math>
+	  <m:apply>
+	    <m:mo>±</m:mo>
+	    <m:apply>
+	      <m:divide/>
+	      <m:apply>
+		<m:times/>
+		<m:cn>3</m:cn>
+		<m:pi/>
+	      </m:apply>
+	      <m:cn>4</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>.  Be sure to adjust the resulting filter
+	coefficients to ensure that the gain does not exceed one  
+	at any frequency.
+      </para>
+
+      <para id="p8">
+	Design your filters by writing a MATLAB script to compute the
+	filter coefficients from the given zero locations.  The MATLAB
+	function <code>poly</code> is very useful for this; type
+	<code>help poly</code> in MATLAB for details.
+      </para>
+
+      <para id="p9">
+        Once you have determined the coefficients of the filters, use
+        MATLAB function <code>freqz</code> to plot the frequency
+        responses.  You will find that the frequency response of these
+        filters has a large gain.  Adjust the resulting filter
+        coefficients to ensure that the largest frequency gain is less
+        than or equal to one by dividing the coefficients by an
+        appropriate value.  Do the frequency responses match your
+        expectations based on the locations of the zeros in the
+        z-plane?
+      </para>
+    </section>
+  </content>
+  
+</document>

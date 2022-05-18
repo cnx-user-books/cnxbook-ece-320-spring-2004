@@ -1,0 +1,138 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  
+  <title> Spectrum Analyzer: Introduction to Fast Fourier Transform (ECE 320 specific)</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>8570807c-7f36-4f22-8b86-d7ed43c8aa0a</md:uuid>
+</metadata>
+
+  <content>
+    <section id="sec1">
+      <title>Introduction</title>
+      <para id="p1">
+        In this lab you are going to apply the <term>Fast Fourier
+	Transform</term> (<term>FFT</term>) to analyze the spectral
+	content of an input signal in real time.  After computing the
+	FFT of a 1024-sample block of input data, you will then
+	compute the squared magnitude of the sampled spectrum and send
+	it to the output for display on the oscilloscope.  In contrast
+	to the systems you have implemented in the previous labs, the
+	FFT is an algorithm that operates on blocks of samples at a
+	time.  In order to operate on blocks of samples, you will need
+	to use interrupts to halt processing so that samples can be
+	transferred.
+      </para>
+      <para id="p2">
+        A second objective of this lab exercise is to introduce the
+        TI-C549 C environment in a practical DSP application. In future labs,
+        the benefits of using the C environment will become clear as larger
+        systems are developed.  The C environment provides a fast and
+        convenient way to implement a DSP system using C and assembly modules.
+      </para>
+      <para id="p3">
+	The FFT can be used to analyze the spectral content of a
+	signal.  Recall that the FFT is an efficient algorithm for
+	computing the <term>Discrete Fourier Transform</term>
+	(<term>DFT</term>), a frequency-sampled version of the
+	<term>DTFT</term>.
+      </para>
+      <para id="p4">
+	DFT:
+	<equation id="eqn1">
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:apply>
+		<m:ci type="fn" class="discrete">X</m:ci>
+		<m:ci>k</m:ci>
+	      </m:apply>
+	      <m:apply>
+		<m:sum/>
+		<m:bvar>
+		  <m:ci>n</m:ci>
+		</m:bvar>
+		<m:lowlimit>
+		  <m:cn>0</m:cn>
+		</m:lowlimit>
+		<m:uplimit>
+		  <m:apply>
+		    <m:minus/>
+		    <m:ci>N</m:ci>
+		    <m:cn>1</m:cn>
+		  </m:apply>
+		</m:uplimit>
+		<m:apply>
+		  <m:times/>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">x</m:ci>
+		    <m:ci>n</m:ci>
+		  </m:apply>
+		  <m:apply>
+		    <m:exp/>
+		    <m:apply>
+		      <m:minus/>
+		      <m:apply>	
+			<m:times/>
+			<m:imaginaryi/>
+			<m:apply>
+			  <m:divide/>
+			  <m:apply>
+			    <m:times/>
+			    <m:cn>2</m:cn>
+			    <m:pi/>
+			  </m:apply>
+			  <m:ci>N</m:ci>
+			</m:apply>
+			<m:ci>n</m:ci>
+			<m:ci>k</m:ci>
+		      </m:apply>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:apply>
+	  </m:math>
+	</equation> where
+	<m:math>
+	  <m:apply>
+	    <m:in/>
+	    <m:apply>
+	      <m:and/>
+	      <m:ci>n</m:ci>
+	      <m:ci>k</m:ci>
+	    </m:apply>
+	    <m:set>
+	      <m:cn>0</m:cn>
+	      <m:cn>1</m:cn>
+	      <m:ci>…</m:ci>
+	      <m:apply>
+		<m:minus/>
+		<m:ci>N</m:ci>
+		<m:cn>1</m:cn>
+	      </m:apply>
+	    </m:set>
+	  </m:apply>
+	</m:math>
+      </para>
+      <para id="p5">
+        Your implementation will include windowing of the input data
+        prior to the FFT computation.  This is simple a point-by-point
+        multiplication of the input with an analysis window.  As you
+        will explore in the prelab exercises, the choice of window
+        affects the shape of the resulting window.
+      </para>
+
+      
+      <para id="p6">
+        A block diagram representation of the spectrum analyzer you
+        will implement in the lab, including the required input and
+        ouput locations, can be found depicted in <link target-id="spectrum_system"/>.
+      </para>
+
+      <figure id="spectrum_system">
+        <media id="idp123504" alt=""><image src="../../media/spectrum_system.png" mime-type="image/png"/></media>
+        <caption>
+          FFT-based spectrum analyzer
+        </caption>
+      </figure>
+    </section>
+  </content>
+  </document>

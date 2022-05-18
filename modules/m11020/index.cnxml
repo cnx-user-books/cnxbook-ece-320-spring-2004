@@ -1,0 +1,346 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml">
+  
+  <title>FIR Filtering: Exercise for TI TMS320C54x (ECE 320 specific)</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>ae4bccf9-4d10-4813-96a5-61c678e56ae0</md:uuid>
+</metadata>
+
+
+
+
+
+  <content>
+    <section id="sec1">
+      <title>Introduction</title>
+      <para id="para1a">
+	In this exercise, you will program in the DSP's assembly
+	language to create FIR filters.  Begin by studying the
+	assembly code for the basic FIR filter <link document="m10017" resource="filter.asm">filter.asm</link>.
+      </para>
+      <code id="fig1" display="block" class="listing"><title>filter.asm</title>
+	   
+	  1	.copy "core.asm"  	; Copy in core file
+	  2   					; This initializes DSP and jumps to "main"
+	  3	
+	  4  FIR_len .set   8			; This is an 8-tap filter.
+	  5	
+	  6          .sect ".data"		; Flag following as data declarations
+	  7   
+	  8    	    .align 16			; Align to a multiple of 16
+	  9  coef					; assign label "coeff"
+	  10	    .copy "coef.asm"		; Copy in coefficients
+	  11
+	  12	    .align 16
+	  13 firstate
+	  14 	    .space 16*8			; Allocate 8 words of storage for
+	  15					; filter state.
+	  16
+	  17	    .sect ".text"		; Flag the following as program code
+	  18  main
+	  19      ; Initialize various pointers
+	  20	    stm    #FIR_len,BK		; initialize circular buffer length
+	  21	    stm    #coef,AR2    	; initialize coefficient pointer
+	  22	    stm	   #firstate,AR3	; initialize state pointer
+	  23	    stm    #1,AR0		; initialize AR0 for pointer increment
+	  24	
+	  25  loop
+	  26      ; Wait for a new block of 64 samples to come in
+	  27  	    WAITDATA
+	  28	
+	  29      ; BlockLen = the number of samples that come from WAITDATA (64)
+	  30    	    stm     #BlockLen-1, BRC	; Put repeat count into repeat counter
+	  31    	    rptb    endblock-1		; Repeat between here and 'endblock' 
+	  32
+	  33    	    ld	    *AR6,16, A		; Receive ch1 into A accumulator
+	  34    	    mar     *+AR6(2)            ; Rcv data is in every other channel
+	  35    	    ld      *AR6,16, B		; Receive ch2 into B accumulator
+	  36    	    mar     *+AR6(2)            ; Rcv data is in every other channel
+	  37    
+	  38    	    ld	    A,B			; Transfer A into B for safekeeping
+	  39
+	  40      ; The following code executes a single FIR filter.
+	  41	
+	  42    	    sth     A,*AR3+%		; store current input into state buffer
+	  43    	    rptz    A,(FIR_len-1)	; clear A and repeat
+	  44    	    mac     *AR2+0%,*AR3+0%,A	; multiply coef. by state &amp; accumulate
+	  45    
+	  46    	    rnd     A			; Round off value in 'A' to 16 bits                            
+	  47    
+	  48     ; end of FIR filter code. Output is in the high part of 'A.'
+	  49
+	  50    	    sth     A, *AR7+		; Store filter output (from A) into ch1
+	  51    	    sth     B, *AR7+		; Store saved input (from B) into ch2
+	  52    
+	  53    	    sth     B, *AR7+		; Store saved input to ch3...ch6 also
+	  54    	    sth     B, *AR7+		; ch4
+	  55    	    sth     B, *AR7+		; ch5 
+	  56    	    sth     B, *AR7+		; ch6
+	  57   
+	  58  endblock:
+	  59      b loop
+	</code>
+      <para id="p1">
+	<code>filter.asm</code> applies an FIR filter to the signal
+	from input channel 1 and sends the resulting output to output
+	channel 1.  It also sends the original signal to output
+	channel 2.
+      </para>
+      <para id="p2">
+	First, create a work directory on your network drive for the
+	files in this exercise, and copy <code>filter.asm</code> from
+	<code>v:\ece320\54x\dsplib</code> to your work directory (this
+	is thesame file you worked with in Lab 0).  Then, use MATLAB
+	to generate two 20-tap FIR filters. The first filter should
+	pass signals from 4 kHz to 8 kHz; the second filter should
+	pass from 8 kHz to 12 kHz. For both filters, allow a 1 kHz
+	transition band on each edge of the filter passband.  To
+	create these filters, first convert these band edges to
+	digital frequencies based on the 44.1 kHz sample rate of the
+	system, then use the MATLAB command <code>remez</code> to
+	generate this filter; you can type <code>help remez</code> for
+	more information.  Use the <code>save_coef</code> command to
+	save each of these filters into different files. (Make sure
+	you reverse the vectors of filter coefficients before you save
+	them.)  Also save your filters as a MATLAB matrix, since you
+	will need them later to generate test vectors. This can be
+	done using the MATLAB <code>save</code> command. Once this is
+	done, use the <code>freqz</code> command to plot the frequency
+	response of each filter.
+      </para>
+    </section>
+    <section id="sec2">
+      <title>Part 1: Single-Channel FIR Filter</title>
+      <para id="p3">
+	For now, you will implement only the filter with a 4 kHz to 8
+	kHz passband. Edit <code>filter.asm</code> to use the
+	coefficients for this filter by making several changes.
+      </para>
+      <para id="p4">
+	First, the length of the FIR filter for this exercise is 20,
+	not 8.  Therefore, you need to change <code>FIR_len</code> to
+	20. <code>FIR_len</code> is set using the <code>.set</code>
+	directive, which assigns a number to a symbolic name. You will
+	need to change this to <code>FIR_len .set 20</code>.
+      </para>
+      <para id="p5">
+	Second, you will need to ensure that the <code>.copy</code>
+	directive brings in the correct coefficients. Change the
+	filename to point to the file that contains the coefficients
+	for your first filter.
+      </para>
+      <para id="p6">
+	Third, you will need to modify the <code>.align</code> and
+	<code>.space</code> directives appropriately. The TI
+	TMS320C54x DSP requires that circular buffers, which are used
+	for the FIR filter coefficient and state buffers, be aligned
+	so that they begin at an address that is a multiple of a power
+	of two greater than the length of the buffer. Since you are
+	using a 20-tap filter (which uses 20-element state and
+	coefficient buffers), the next greater power of two is 32.
+	Therefore, you will need to align both the state and
+	coefficient buffers to an address that is a multiple of 32.
+	(16-element buffers would also require alignment to a multiple
+	of 32.)  This is done with the <code>.align</code> command. In
+	addition, memory must be reserved for the state buffer. This
+	is done using the <code>.space</code> directive, which takes
+	as its input the number of <emphasis>bits</emphasis> of space
+	to allocate. Therefore, to allocate 20 words of storage, use
+	the directive <code>.space 16*20</code> as shown below:
+      </para>
+      <code display="block" id="idm6620256">
+	
+	1         .align 32             % Align to a multiple of 32
+	2  coef   .copy  "filter1.asm"  % Copy FIR filter coefficients
+	3
+	4         .align 32             % Align to a multiple of 32
+	5  state  .space 16*20          % Allocate 20 words of data space
+      </code>
+      <para id="p7">
+	Assemble your code, set <code>PMST</code> to
+	<code>0xFFE0</code>, reset the DSP, and run.  Ensure that it
+	is has the correct frequency response. After you have verified
+	that this code works properly, proceed to the next step.
+      </para>
+    </section>
+    <section id="sec3">
+      <title>Part 2: Dual-Channel FIR Filters</title>
+      <para id="p9">
+	First, make a copy of your modified <code>filter.asm</code>
+	file from <link target-id="sec2">Part 1</link>. Work from this
+	copy; do not modify your working filter from the previous
+	part. You will use that code again later.
+      </para>
+      <para id="p10">
+	Next, modify your code so that in addition to sending the
+	output of your first filter (with a 4 kHz to 8 kHz passband)
+	to output channel 1 and the unfiltered input to output channel
+	2, it sends the output of your second filter (with a 8 kHz to
+	12 kHz passband) to output channel 3. To do this, you will
+	need to use the <code>.align</code> and <code>.copy</code>
+	directives to load the second set of coefficients into data
+	memory.  You will also need to add instructions to initialize
+	a pointer to the second set of coefficients and to perform the
+	calculations for the second filter.  
+      </para>
+      <exercise id="new0">
+	<problem id="idm6905776">
+	  <title>Extra Credit Problem</title>
+	  <para id="new1">
+	    One extra credit point will be awarded to you and your
+	    partner if you can implement the dual-channel system
+	    without using the auxiliary registers <code>AR4</code> and
+	    <code>AR5</code>?  Why is this more difficult?  Renaming
+	    <code>AR4</code> and <code>AR5</code> using the
+	    <code>.asg</code> directive does not count!
+	  </para>
+	</problem>
+      </exercise>
+      <para id="p11">
+	Using the techniques introduced in <link document="m10017">DSP
+	Development Environment: Introductory Exercise for TI
+	TMS320C54x</link>, generate an appropriate test vector and
+	expected outputs in MATLAB. Then, using the test-vector core
+	file also introduced in <link document="m10017">DSP
+	Development Environment: Introductory Exercise for TI
+	TMS320C54x</link>, find the system's output given this test
+	vector.  In MATLAB, plot the expected and actual outputs of
+	the both filters and the difference between the expected and
+	actual outputs. Why is the output from the DSP system not
+	exactly the same as the output from MATLAB?
+      </para>
+    </section>
+    <section id="sec5">
+      <title>Part 3: Alternative Single-Channel FIR Implementation</title>
+      <para id="p12">
+	An alternative method of implementing symmetric FIR filters
+	uses the <term><code>firs</code></term> instruction.  Modify
+	your code from <link target-id="sec2">Part 1</link> to implement
+	the filter with a 4 kHz to 8 kHz passband using the
+	<code>firs</code>.
+      </para>
+      <para id="p13">
+	Two differences in implementation between your code from <link target-id="sec2">Part 1</link> and the code you will write for
+	this part are that (1) the <code>firs</code> instruction
+	expects coefficients to be located in program memory instead
+	of data memory, and (2) <code>firs</code> requires the states
+	to be broken up into two separate circular buffers.  Refer to
+	the <code>firs</code> instruction on <cite><cite-title>page 4-59</cite-title></cite> in
+	the <cite url="http://www-s.ti.com/sc/psheets/spru172c/spru172c.pdf"><cite-title>Mnemonic
+	Instruction Set</cite-title></cite> manual, as well as a description and
+	example of its use on <cite><cite-title>pages 4-5 through 4-8</cite-title></cite> of
+	the <cite url="http://www-s.ti.com/sc/psheets/spru173/spru173.pdf"><cite-title>Applications
+	Guide</cite-title></cite> for more information (<cite><cite-title>Volumes 2 and
+	4</cite-title></cite> respectively of the <cite><cite-title>TMS320C54x DSP Reference
+	Set</cite-title></cite>).
+      </para>
+      <para id="p14">
+	<code>AR0</code> needs to be set to -1 for this code to work
+	properly.  Why?  <note type="Note" id="idm1531344"><label>Note</label><code>COEFF</code> is a
+	label to the coefficients now expected to be in program
+	memory.  Refer to the <code>firs</code> description for more
+	information).</note>
+      </para>
+      <code display="block" id="idm1529680">
+	
+	 
+	1	mvdd	*AR2,*AR3+0%		; write x(-N/2) over x(-N)
+	2	sth	A,*AR2			; write x(0) over x(-N/2)
+	3	add	*AR2+0%,*AR3+0%,A 	; add x(0) and x(-(N-1))
+	4					;   (prepare for first multiply)
+	5
+	6	rptz	B,#(FIR_len/2-1)  	  
+	7	firs	*AR2+0%,*AR3+0%,COEFF
+	8	mar	??????? 		; Fill in these two instructions
+	9	mar	???????			; They modify AR2 and AR3.
+	10
+	11					; note that the result is now in the
+	12					;  B accumulator
+      </code>
+      <para id="p15">
+	Because states and coefficients are now treated differently
+	than in your previous FIR implementation, you will need to
+	modify the pointer initializations to
+      </para>
+      <code display="block" id="idp3493904">
+	
+	1	stm	#(FIR_len/2),BK		; initialize circular buffer length
+	2	stm	#firstate_,AR2		; initialize location containing first 
+	3					;   half of states
+	4
+	5	stm	#-1,AR0			; Initialize AR0 to -1
+	6
+	7	stm	#firstate2_,AR3	        ; initialize location containing last half
+	
+      </code>
+      <para id="p16">
+	Use the test-vector core file to find the output of this
+	system given the same test vector you used to test the
+	two-filter system. Compare the output of this code against the
+	output of the same filter implemented using the
+	<code>mac</code> instruction. Are the results the same? Why or
+	why not?  Ensure that the filtered output is sent to output
+	channel 1, and that the unmodified output is still sent to
+	output channel 2.<note type="warning" id="idp3496832">You will lose credit if
+	the unmodified output is not present or if the channels are
+	reversed!</note>
+      </para>
+    </section>
+    
+    <section id="sec6">
+      <title>Quiz Information</title>
+      <para id="p17">
+        The quiz for Lab 1 is broken down as follows:
+      </para>
+      
+      <list id="point_list" list-type="bulleted">
+        <item> 1 point: Prelab (must be ready to show the TA the week
+	  before the quiz)</item> 
+        
+        <item> 4 points: Working code: you must demonstrate that your
+	  code works using input from function generator and that it
+	  works using input from appropriate test vectors.  Have an
+	  <code>.asm</code> file <emphasis>ready</emphasis> to
+	  demonstrate each.  Of the 4 points, you get 0.5 points for a
+	  single 20-tap filter, 2 points for the two-filter system,
+	  and 1.5 points for the system using the <code>firs</code>
+	  opcode.</item>
+
+        <item> 5 points: Oral quiz score.</item>
+
+        <item> 1 extra credit point: As described <link target-id="p10">above</link>.</item>
+      </list>
+
+      <para id="p18">
+        The oral quiz may cover signal processing material relating to
+        FIR filters, including, but not limited to, the delay through
+        FIR filters, generalized linear phase, and the differences
+        between ideal FIR filters and realizable FIR filters.  You may
+        also be asked questions about digital sampling theory,
+        including, but not limited to, the Nyquist sampling theorem
+        and the relationship between the analog frequency spectrum and
+        the digital frequency spectrum of a continuous-time signal
+        that has been sampled.
+      </para>
+
+      <para id="p19">
+        The oral quiz <emphasis>will</emphasis> cover the code that
+        you have written during the lab.  You are expected to
+        understand, in detail, all of the code in the files you have
+        worked on, even if your partner or a TA wrote it.  (You are
+        not expected to understand the core file in detail).  The TA
+        will ask you to explain various lines of code as part of the
+        quiz.  The TAs may also ask questions about 2's complement
+        fractional arithmetic, circular buffers, alignment, and the
+        mechanics of either of the two FIR filter implementations.
+        You could be ready to trace through any of the code on paper
+        and explain what each line of code does.
+      </para>
+
+      <para id="p20">
+        Use the TI documentation, specifically the <cite url="http://www-s.ti.com/sc/psheets/spru172c/spru172c.pdf"><cite-title>Mnemonic
+	Instruction Set</cite-title></cite> manual.  Hard-copies of this manual can
+	also be found in the lab.  Also, feel free to ask the TAs to
+	help explain the code that you have been given.
+      </para>
+    </section>
+  </content>
+</document>

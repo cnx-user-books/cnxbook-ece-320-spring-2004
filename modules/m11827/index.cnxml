@@ -1,0 +1,1167 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  <title>Spectrum Analyzer: Processor Exercise Using C Language with C Introduction</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>aa1313e3-0c7b-4efa-94a1-28fbb45289ab</md:uuid>
+</metadata>
+
+
+  <content>
+
+    <section id="sec1">
+      <title>Implementation</title>
+
+      <para id="sec1para1">
+        As this is your first experience with the C environment, you will
+        have the option to add most of the required code in C or assembly.
+        A C skeleton will provide access to input samples, output samples,
+        and interrupt handling code. You will add code to transfer the
+        inputs and outputs (in blocks at a time), apply a hamming window,
+        compute the magnitude-squared spectrum, and include a trigger pulse.
+        After the hamming window is created, either an assembly or C module
+        that bit reverses the input and performs an FFT calculation is called.
+      </para>
+
+      <para id="sec1para2">
+        As your spectrum analyzer works on a block of samples at a
+        time, you will need to use interrupts to pause your processing
+        while samples are transferred from/to the CODEC (A/D and D/A)
+        buffer.  Fortunately, the interrupt handling routines have
+        been written for you in a C shell program available at
+        <code>v:\ece420\54x\dspclib\lab4main.c</code> and the core
+        code.
+      </para>
+
+      <section id="sec1sub1">
+        <title>Interrupt Basics</title>
+
+        <para id="sec1sub1para1">
+          Interrupts are an essential part of the operation of any
+          microprocessor.  They are particularly important in embedded
+          applications where DSPs are often used.  Hardware interrupts
+          provide a way for interacting with external devices while
+          the processor executes code.  For example, in a key entry
+          system, a key press would generate a hardware interrupt.
+          The system code would then jump to a specified location in
+          program memory where a routine could process the key input.
+          Interrupts provide an alternative to polling.  Instead of
+          checking for key presses at a predetermined rate (requires a
+          clock), the system could be busy executing other code.  On
+          the TI-C54x DSP, interrupts provide a convenient way to
+          transfer blocks of data to/from the CODEC in a timely
+          fashion.
+        </para>
+      </section>
+
+      <section id="sec1sub2">
+        <title>Interrupt Handling</title>
+
+        <para id="sec1sub2para1">
+          The <code>lab4main.c</code> code and the core code are intended
+          to make your interaction with the hardware much simpler. As
+          there was a core file for working in the assembly environment
+          (Labs 0-3), there is a core file for the C environment 
+          (V:\ece420\54x\dspclib\core.asm) which handles the interrupts
+          from the CODEC (A/D and D/A) and the serial port. Here, we
+          will describe the important aspects of the core code necessary
+          to complete the assignment.
+        </para>
+        <para id="sec1sub2para2">
+          At the heart of the hardware interaction is the auto-buffering
+          serial port. In the auto-buffering serial mode, the TI-C54x
+          processor is able to do processing
+          <emphasis>uninterrupted</emphasis> while samples are
+          transferred to/from a buffer of length
+          <m:math>
+            <m:apply>
+              <m:eq/>
+              <m:ci>BlockLen</m:ci>
+              <m:cn>64</m:cn>
+            </m:apply>
+          </m:math> samples. However, the spectrum analyzer to be
+          implemented in this lab works over a block of
+          <m:math>
+            <m:apply>
+              <m:eq/>
+              <m:ci>N</m:ci>
+              <m:cn>1024</m:cn>
+            </m:apply>
+          </m:math> samples.  If it were possible to compute a
+          1024-point FFT in the sample time of one
+          <code>BlockLen</code>, then no additional interrupt handling
+          routines would be necessary.  Samples could be collected in
+          a 1024-length buffer and a 1024-point FFT could be computed
+          uninterrupted while the auto-buffering buffer fills.
+          Unfortunately, the DSP is not fast enough to accomplish this
+          task.
+        </para>
+
+        <para id="sec1sub2para3">
+          We now provide an explanation of the shell C program
+          <code>lab4main.c</code> listed in <link target-id="sec_appendix_a">Appendix A</link>.  The
+          <code>lab4main.c</code> file contains the function
+          <code>interrupt void irq</code> and a main program.  The
+          main program is an infinite loop over blocks of
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci>N</m:ci>
+	      <m:cn>1024</m:cn>
+	    </m:apply>
+	  </m:math> samples.  Note that while the DSP is executing
+          instructions in this loop, interrupts occur every
+          <code>BlockLen</code> samples.  Inside the infinite loop,
+          you will insert code to do the operations which
+          follow. Although each of these operations may be performed
+          in C or assembly, we suggest you follow the guidelines
+          suggested.
+
+          <list id="list1" list-type="enumerated">
+            <item>Transfer inputs and outputs (C)</item>
+            <item>Apply a Hamming Window (C/assembly)</item>
+            <item>Bit-reverse the input (C and assembly)</item>
+            <item>Apply an 
+              <m:math>
+		<m:ci>N</m:ci>
+	      </m:math>-point FFT (C and assembly)</item>
+            <item>Compute the magnitude-squared spectrum (C/assembly)</item>
+            <item>Include a trigger pulse (C/assembly)</item>
+          </list>
+        </para>
+
+        <para id="sec1sub2para4">
+          The function WaitAudio is an assembly function in the core code
+          which handles the CODEC interrupts.  An interrupt from the CODEC
+          occurs every <code>BlockLen</code> samples.  The
+          <code>SetAudioInterrupt(irq)</code> call in the main program
+          tells the core code to jump to the <code>irq</code> function
+          when an interrupt occurs.  In the <code>irq</code> function,
+          <code>BlockLen</code> samples of the A/D input in
+          <code>Rcvptr</code> (channel 1) are written to a length
+          <m:math>
+            <m:ci>N</m:ci>
+	  </m:math> <code>inputs</code> buffer, and
+          <code>BlockLen</code> of the output samples in the
+          <code>outputs</code> buffer are written to the D/A output
+          via <code>Xmitptr</code> on channel 2. In C, pointers may be
+          used as array names so that <code>Xmitptr[0]</code> is the
+          first word pointed to by <code>Xmitptr</code>. As in the
+          assembly core, the input samples are not in 
+          consecutive order.  The right and left inputs are offset from 
+          <code>Rcvptr</code> respectively by 
+          <m:math display="inline">
+            <m:apply>
+              <m:times/>
+                <m:cn>4</m:cn>
+                <m:ci>i</m:ci>
+            </m:apply>
+          </m:math> and
+          <m:math display="inline">
+            <m:apply>
+              <m:plus/>
+                <m:apply>
+                  <m:times/>
+                    <m:cn>4</m:cn>
+                    <m:ci>i</m:ci>
+                </m:apply>
+                <m:cn>2</m:cn>
+            </m:apply>
+          </m:math>,
+          <m:math display="inline">
+            <m:apply>
+              <m:eq/>
+                <m:ci>i</m:ci>
+                <m:cn>0</m:cn>
+            </m:apply>
+          </m:math>, …,
+          <m:math display="inline">
+            <m:apply>
+              <m:minus/>
+                <m:ci>BlockLen</m:ci>
+                <m:cn>1</m:cn>
+            </m:apply>
+          </m:math>.
+          The six output channels are accessed consecutively as offsets
+          from <code>Xmitptr</code>. On channel 1 of the
+          output, the input is echoed out. <emphasis>You are to fill
+          the buffer <code>outputs</code> with the windowed
+          magnitude-squared FFT values by performing the operations
+          listed above.</emphasis>
+        </para>
+
+        <para id="sec1sub2para5">
+          In the main code, the <code>while(!input_full);</code>
+          loop waits for
+          <m:math>
+            <m:ci>N</m:ci>
+	  </m:math> samples to collect in the <code>inputs</code>
+          buffer.  Next, the
+          <m:math>
+            <m:ci>N</m:ci>
+          </m:math> inputs and outputs must be transferred.  You are
+          to write this portion of code.  This portion of code is to
+          be done first, within <code>BlockLen</code> sample times;
+          otherwise the first <code>BlockLen</code> of samples of
+          output would not be available on time.  Once this loop is
+          finished, the lengthy processing of the FFT can continue.
+          During this processing, the DSP is interrupted every
+          <code>BlockLen</code> samples to transfer samples.  Once
+          this processing is over, the infinite loop returns to
+          <code>while(!input_full);</code> to wait for
+          <m:math display="inline">
+            <m:ci>N</m:ci>
+          </m:math> samples to finish collecting.
+        </para>
+
+        <para id="sec1sub2para6">
+          The flow diagram in <link target-id="flow_fig"/> summarizes the
+          operation of the interrupt handling routine
+        </para>
+
+        <figure orient="horizontal" id="flow_fig">
+          <subfigure id="subfig_flow1">
+            <media id="idp3540288" alt=""><image src="../../media/main_flow.png" mime-type="image/png"/></media>
+            <caption>main</caption>
+          </subfigure>
+          <subfigure id="subfig_flow21">
+            <media id="idp6851936" alt=""><image src="../../media/interrupt_flow.png" mime-type="image/png"/></media>
+            <caption>interrupt handler</caption>
+          </subfigure>
+          <caption>
+            Overall program flow of the main function and the
+            interrupt handling function.
+          </caption>
+        </figure>
+
+      </section>
+
+      <section id="sec1sub3">
+        <title>Assembly FFT Routine</title>
+
+        <para id="sec1sub3para1">
+          As the list of operations indicates, bit-reversal and FFT
+          computation are to be done in both C and assembly.  For the
+          assembly version, make sure that the line defining
+          <code>C_FFT</code> is commented in <code>lab4main.c</code>.
+          We are providing you with a shell assembly file, available at
+          <code>v:\ece420\54x\dspclib\c_fft_given.asm</code> and shown
+          in <link target-id="sec_appendix_b">Appendix B</link>, containing many
+          useful declarations and some code. The code for performing
+          bit-reversal and other declarations needed for the FFT
+          routine are also provided in this section.
+          <emphasis>However, we would like you to enter this code
+          manually, as you will be expected to understand its
+          operation.
+          </emphasis>
+        </para>
+
+        <para id="sec1sub3para2">
+          The assembly file <code>c_fft_given.asm</code>
+          contains two main parts, the data section 
+          starting with <code>.sect ".data"</code> and the
+          program section starting with  
+          <code>.sect ".text"</code>.  Every function and
+          variable accessed in C must be preceded by a single underscore
+          <code>_</code> in assembly and a 
+          <code>.global _name</code> must be placed in the
+          assembly file for linking.  In this example, 
+          <code>bit_rev_fft</code> is an assembly function called from 
+          the C program with a label <code>_bit_rev_fft</code> in the
+          text portion of the assembly file and a
+          <code>.global _bit_rev_fft</code> declaration.  In each
+          assembly function, the macro <code>ENTER_ASM</code> is
+          called upon entering and <code>LEAVE_ASM</code> is
+          called upon exiting.  These macros are defined in
+          <code>v:\ece420\54x\dspclib\core.inc</code>.  The 
+          <code>ENTER_ASM</code> macro saves the status registers
+          and <code>AR1</code>, <code>AR6</code>, and
+          <code>AR7</code> when entering a function as required
+          by the register use conventions.  The <code>ENTER_ASM</code>
+          macro also sets the status registers to the assembly conventions we 
+          have been using (i.e, <code>FRCT</code>=1 for fractional
+          arithmetic and <code>CPL</code>=0 for
+          <code>DP</code> referenced addressing).  The
+          <code>LEAVE_ASM</code> macro just restores the saved
+          registers.
+        </para>
+
+      <section id="sec1sub4">
+        <title>Parameter Passing</title>
+
+        <para id="sec1sub4para1">
+          The parameter passing convention between assembly and C is 
+          simple for single input, single output assembly functions.  From 
+          a C program, the input to an assembly program is in the low part
+          of accumulator <code>A</code> with the output returned 
+          in the same place.  When more
+          than one parameter is passed to an assembly function, the
+          parameters are passed on the stack (see the core file 
+          description for more information).  We suggest that you avoid
+          passing or returning more than one parameter.  Instead, use global 
+          memory addresses to pass in or return more than one parameter.  
+          Another alternative is to pass a pointer to the start of a buffer
+          intended for passing and returning parameters.
+        </para>
+      </section>
+
+      <section id="sec1sub5">
+        <title>Registers Modified</title>
+
+        <para id="sec1sub5para1">
+          When entering and leaving an assembly function, the 
+          <code>ENTER_ASM</code> and <code>LEAVE_ASM</code>
+          macros ensure that certain registers are saved and restored.  
+          Since the C program may use any and all registers, the state of
+          a register cannot be expected to remain the same between calls to
+          assembly function(s).  <emphasis>Therefore, any information that 
+          needs to be preserved across calls to an assembly function must be 
+          saved to memory!</emphasis>
+        </para>
+      </section>
+
+        <para id="sec1sub5para2">
+          Now, we explain how to use the FFT routine provided by TI
+          for the C54x. The FFT routine <code>fft.asm</code> located
+          in <code>v:\ece420\54x\dsplib\</code> computes an in-place,
+          complex FFT. The length of the FFT is defined as a label
+          <code>K_FFT_SIZE</code> and the algorithm assumes that the
+          input starts at data memory location <code>_fft_data</code>.
+          To have your code assemble for an
+          <m:math>
+            <m:ci>N</m:ci>
+	  </m:math>-point FFT, you will have to include the following
+          label definitions in your assembly code.
+        </para>
+
+        <code display="block" id="verbatim">
+	  
+	  N                 .set       1024
+	  K_FFT_SIZE        .set       N           ; size of FFT
+	  K_LOGN            .set       10          ; number of stages (log_2(N))
+	  
+        </code>
+
+        <para id="sec1sub5para3">
+          In addition to defining these constants, you will have to
+          include twiddle-factor tables for the FFT.  These tables
+          (<link resource="TWIDDLE1">twiddle1</link> and <link resource="TWIDDLE2">twiddle2</link>) are available in the shared
+          directory <code>v:\ece420\54x\dsplib\</code>.  Note that the
+          tables are each
+          <m:math>
+            <m:ci>N</m:ci>
+	  </m:math> points long representing values from 0 to just shy
+          of 180 degrees and must be accessed using a
+          <emphasis>circular pointer</emphasis>. To include these
+          tables at the proper location in memory with the appropriate
+          labels referenced by the FFT, use the following
+        </para>
+
+        <code display="block" id="block2">
+	  
+	  .sect  ".data"
+	  .align  1024
+	  sine         .copy "v:\ece420\54x\dsplib\twiddle1"
+	  .align  1024
+	  cosine       .copy "v:\ece420\54x\dsplib\twiddle2"
+	  
+        </code>
+
+        <para id="sec1sub5para4">
+          The FFT provided requires that the input be in bit-reversed
+          order, with alternating real and imaginary
+          components. Bit-reversed addressing is a convenient way to
+          order input
+          <m:math>
+            <m:apply>
+              <m:ci type="fn" class="discrete">x</m:ci>
+              <m:ci>n</m:ci>
+            </m:apply>
+          </m:math> into a FFT so that the output 
+          <m:math>
+            <m:apply>
+              <m:ci type="fn">X</m:ci>
+              <m:ci>k</m:ci>
+            </m:apply>
+          </m:math> is in sequential order (<foreign>i.e.</foreign>
+          <m:math>
+            <m:apply>
+              <m:ci type="fn">X</m:ci>
+              <m:cn>0</m:cn>
+            </m:apply>
+          </m:math>,
+          <m:math>
+            <m:apply>
+              <m:ci type="fn">X</m:ci>
+              <m:cn>1</m:cn>
+            </m:apply>
+          </m:math>, …,
+          <m:math>
+            <m:apply>
+              <m:ci type="fn">X</m:ci>
+              <m:apply>
+                <m:minus/>
+		<m:ci>N</m:ci>
+		<m:cn>1</m:cn>
+              </m:apply>
+            </m:apply>
+          </m:math> for an 
+          <m:math>
+            <m:ci>N</m:ci>
+	  </m:math>-point FFT).  The following table illustrates the
+          bit-reversed order for an eight-point sequence.
+        </para>
+
+        <table frame="topbot" id="table1" summary="">
+          
+          <tgroup cols="4" align="center" colsep="1" rowsep="1">
+	    <thead valign="top">
+	      <row>
+		<entry align="center">Input Order</entry>
+		<entry align="center">Binary Representation</entry>
+		<entry align="center">Bit-Reversed Representation</entry>
+		<entry align="center">Output Order</entry>
+	      </row>
+	    </thead>
+	    <tbody valign="top">
+	      <row>
+		<entry align="center">0</entry>
+		<entry align="center">000</entry>
+		<entry align="center">000</entry>
+		<entry align="center">0</entry>
+	      </row>
+	      <row>
+		<entry align="center">1</entry>
+		<entry align="center">001</entry>
+		<entry align="center">100</entry>
+		<entry align="center">4</entry>
+	      </row>
+	      <row>
+		<entry align="center">2</entry>
+		<entry align="center">010</entry>
+		<entry align="center">010</entry>
+		<entry align="center">2</entry>
+	      </row>
+	      <row>
+		<entry align="center">3</entry>
+		<entry align="center">011</entry>
+		<entry align="center">110</entry>
+		<entry align="center">6</entry>
+	      </row>
+	      <row>
+		<entry align="center">4</entry>
+		<entry align="center">100</entry>
+		<entry align="center">001</entry>
+		<entry align="center">1</entry>
+	      </row>
+	      <row>
+		<entry align="center">5</entry>
+		<entry align="center">101</entry>
+		<entry align="center">101</entry>
+		<entry align="center">5</entry>
+	      </row>
+	      <row>
+		<entry align="center">6</entry>
+		<entry align="center">110</entry>
+		<entry align="center">011</entry>
+		<entry align="center">3</entry>
+	      </row>
+	      <row>
+		<entry align="center">7</entry>
+		<entry align="center">111</entry>
+		<entry align="center">111</entry>
+		<entry align="center">7</entry>
+	      </row>
+	    </tbody>
+          </tgroup>
+        </table>
+
+        <para id="sec1sub5para5">
+          The following routine performs the bit-reversed reordering
+          of the input data.  The routine assumes that the input is
+          stored in data memory starting at the location labeled
+          <code>_bit_rev_data</code>, which must be aligned to the
+          least power of two greater than the input buffer length, and
+          consists of alternating real and imaginary parts.  Because
+          our input data is going to be purely real in this lab, you
+          will have to make sure that you set the imaginary parts to
+          zero by zeroing out every other memory location.
+        </para>
+
+        <code display="block" id="block3">
+          
+	  1    bit_rev:
+	  2            STM     #_bit_rev_data,AR3          ; AR3 -&gt; original input
+	  3            STM     #_fft_data,AR7              ; AR7 -&gt; data processing buffer
+	  4            MVMM    AR7,AR2                     ; AR2 -&gt; bit-reversed data
+	  5            STM     #K_FFT_SIZE-1,BRC
+	  6            RPTBD   bit_rev_end-1
+	  7            STM     #K_FFT_SIZE,AR0             ; AR0 = 1/2 size of circ buffer
+	  8            MVDD    *AR3+,*AR2+
+	  9            MVDD    *AR3-,*AR2+
+	  10            MAR     *AR3+0B
+	  11    bit_rev_end:
+	  12            NOP
+          13            RET
+          
+        </code>
+
+        <para id="sec1sub5para6">
+          As mentioned, in the above code <code>_bit_rev_data</code>
+          is a label indicating the start of the input data and
+          <code>_fft_data</code> is a label indicating the start of a
+          circular buffer where the bit-reversed data will be
+          written. Note that although <code>AR7</code> is not used by
+          the bit-reversed routine directly, it is used extensively in
+          the FFT routine to keep track of the start of the FFT data
+          space.
+        </para>
+
+        <para id="sec1sub5para7">
+          In general, to have a pointer index memory in bit-reversed
+          order, the <code>AR0</code> register needs to be set to
+          one-half the length of the circular buffer; a statement such
+          as <code>ARx+0B</code> is used to move the <code>ARx</code>
+          pointer to the next location. For more information regarding
+          the bit-reversed addressing mode, refer to <cite><cite-title>page
+          5-18</cite-title></cite> in the <cite url="http://www-s.ti.com/sc/psheets/spru131g/spru131g.pdf"><cite-title>TI-54x
+          CPU and Peripherals manual</cite-title></cite>.  Is it possible to
+          bit-reverse a buffer in place?  For a diagram of the
+          ordering of the data expected by the FFT routine, see
+          <cite><cite-title>Figure 4-10</cite-title></cite> in the <cite url="http://www-s.ti.com/sc/psheets/spru173/spru173.pdf"><cite-title>TI-54x
+          Applications Guide</cite-title></cite>.  Note that the FFT code uses all
+          the pointers available and does not restore the pointers to
+          their original values.
+        </para>
+      </section>
+
+      <section id="sec1sub6">
+        <title>C FFT Routine</title>
+        <para id="sec1sub6para1">
+           A bit-reversing and FFT routine have also been provided in 
+           <code>lab4fft.c</code>, listed in
+           <link target-id="sec_appendix_c">Appendix C</link>. <emphasis>Again,
+           make sure you understand how the bit reversal is taking
+           place.</emphasis>
+           In <code>lab4main.c</code>, the line defining <code>C_FFT</code>
+           must not be commented for use of the C FFT routine. The sine
+           tables (twiddle factors) are located in 
+           <link resource="sinetables.h">sinetables.h</link>.
+           This fft requires its inputs in two buffers, the real buffer
+           <code>real</code> and the imaginary buffer <code>imag</code>,
+           and the output is placed in the same buffers.
+           The length of the FFT, <code>N</code>, and <code>logN</code> are
+           defined in <code>lab4.h</code>, which is also listed in 
+           <link target-id="sec_appendix_c">Appendix C</link>.
+           <emphasis>When experimenting with the C
+           FFT make sure you modify these length values instead of the ones
+           in the assembly code and <code>lab4main.c</code>!</emphasis>
+        </para>
+      </section>
+
+      <section id="sec1sub7">
+        <title>Creating the Window</title>
+        <para id="sec1sub7para1">
+          As mentioned, you will be using the FFT to compute the
+          spectrum of a windowed input.  For your implementation you
+          will need to create a 1024-point Hamming window.  First,
+          create a Hamming window in matlab using the function
+          <code>hamming</code>.  For the assembly FFT, use
+          <code>save_coef</code> to save the window to a file
+          that can then be included in your code with the
+          <code>.copy</code> directive.  For the C FFT, use the matlab
+          function <link resource="write_intvector_headerfile.m">
+          <code>write_intvector_headerfile</code></link>
+          with <code>name</code> set to <code>'window'</code> and
+          <code>elemperline</code> set to <code>8</code> to create
+          the header file that is included in <code>lab4main.c</code>.
+        </para>
+      </section>
+
+      <section id="sec1sub8">
+        <title>Displaying the Spectrum</title>
+
+        <para id="sec1sub8para1">
+          Once the DFT has been computed, you must calculate the
+          squared magnitude of the spectrum for display.
+
+          <equation id="eq2">
+            <m:math>
+              <m:apply>
+                <m:eq/>
+		<m:apply>
+		  <m:power/>
+		  <m:apply>
+		    <m:abs/>
+		    <m:apply>
+		      <m:ci type="fn">X</m:ci>
+		      <m:ci>k</m:ci>
+		    </m:apply>
+		  </m:apply>
+		  <m:cn>2</m:cn>
+		</m:apply>
+		<m:apply>
+		  <m:plus/>
+		  <m:apply>
+		    <m:power/>
+		    <m:apply>
+		      <m:real/>
+		      <m:apply>
+			<m:ci type="fn">X</m:ci>
+			<m:ci>k</m:ci>
+		      </m:apply>
+		    </m:apply>
+		    <m:cn>2</m:cn>
+		  </m:apply>
+		  <m:apply>
+		    <m:power/>
+		    <m:apply>
+		      <m:imaginary/>
+		      <m:apply>
+			<m:ci type="fn">X</m:ci>
+			<m:ci>k</m:ci>
+		      </m:apply>
+		    </m:apply>
+		    <m:cn>2</m:cn>
+		  </m:apply>
+		</m:apply>
+              </m:apply>
+            </m:math>
+          </equation> You may find the assembly instructions
+          <code>squr</code> and <code>squra</code> useful in
+          implementing <link target-id="eq2"/>.
+        </para>
+
+        <para id="sec1sub8para2">
+          Because the squared magnitude is always nonnegative, you can
+          replace one of the magnitude values with a -1.0 as a trigger
+          pulse for display on the oscilloscope. This is easily
+          performed by replacing the DC term (
+          <m:math>
+            <m:apply>
+              <m:eq/>
+	      <m:ci>k</m:ci>
+	      <m:cn>0</m:cn>
+            </m:apply>
+          </m:math>)
+          with a -1.0 when copying the magnitude values to the output buffer. The
+          trigger pulse is necessary for the oscilloscope to lock to a specific
+          point in the spectrum and keep the spectrum fixed on the scope.
+        </para>
+      </section>
+
+      <section id="sec1sub9">
+        <title>Intrinsics</title>
+
+        <para id="sec1sub9para1">
+          If you are planning on writing some of the code in C, then
+          you may be forced to use intrinsics.  Intrinsic instructions
+          provide a way to use assembly instructions directly in C.
+          An example of an intrinsic instruction is
+          <code>bit_rev_data[0]=_smpyr(bit_rev_data[0],window[0])</code>
+          which performs the assembly signed multiply round
+          instruction.  You may also find the <code>_lsmpy</code>
+          instruction useful.  For more information on intrinsics, see
+          <cite><cite-title>page 6-22</cite-title></cite> of the <cite url="http://www-s.ti.com/sc/psheets/spru103g/spru103g.pdf"><cite-title>TI-C54x
+          Optimizing C/C++ Compiler User's Guide</cite-title></cite>.
+        </para>
+
+        <para id="sec1sub9para2">
+          The following lines of code were borrowed from the C FFT to serve
+          as an example of arithmetic operations in C.  Save
+          this code in a file called mathex.c and compile this file.  Look at
+          the resulting assembly file and investigate the differences between
+          each block.  Be sure to reference the compiler user's guide to find
+          out what the state of the FRCT and OVM bits are. Does each block
+          work properly for all possible values?
+        </para>
+
+        <code display="block" id="block5">
+          
+            void main(void)
+            {
+               int s1, s2;
+               int t1, t2;
+               int i1, i2;
+               int n1 = 16383, n2 = 16382, n3 = 16381, n4 = 16380;
+
+               /* Code for standard 32-bit hardware, */
+               /* with x,y limited to 16 bits        */
+               s1 = (n1*n2 + n3*n4) &gt;&gt; 15;
+               s2 = (n1 + n2) &gt;&gt; 1;
+
+               /* Code for TI TMSC5000 series */
+               t1 = ((long int)(n1*n2) + (long int)(n3*n4)) &gt;&gt; 15;
+               t2 = ((long int)n1 + (long int)n2) &gt;&gt; 1;
+
+               /* Intrinsic code for TMS320C54X series */
+               i1 = _sadd(_smpy(n1,n2), _smpy(n3,n4));
+               i2 = _sshl(_sadd(n1, n2),-1);
+            }
+          
+        </code>
+      </section>
+
+      <section id="sec1sub10">
+        <title>Compiling and Linking</title>
+
+        <para id="sec1sub10para1">
+          A working program can be produced by compiling the C code and
+          linking assembly modules and the core module.  The compiler
+          translates C code to a relocatable assembly form.  The linker
+          assigns physical addresses on the DSP to the relocatable data
+          and code segments, resolves <code>.global</code>
+          references and links runtime libraries.
+        </para>
+
+        <para id="sec1sub10para2">
+          The procedure for compiling C code and linking assembly modules
+          has been automated for you in the batch file 
+          <code>v:\ece420\54x\dsptools\c_asm.bat</code>.  The name of the
+          first file becomes the name of the executable. Once you have
+          completed <code>lab4main.c</code> and <code>c_fft_given.asm</code>,
+          type <code>c_asm lab4main.c c_fft_given.asm</code> to produce a
+          <code>lab4main.out</code> file to be loaded onto the DSP.  For the
+          C FFT type <code>c_asm lab4main.c lab4fft.c</code> to produce
+          <code>lab4main.out</code>.
+          Load the output file onto the DSP as usual and confirm that valid
+          FFTs are calculated.  Once valid output is obtained, measure how
+          many clock cycles it takes to compute both the assembly and C FFT.
+        </para>
+      </section>
+
+    </section>
+
+    <section id="sec2">
+      <title>Quiz Information</title>
+
+      <para id="sec2para1">
+        From your prelab experiments, you should be able to describe
+        the effect of windowing and zero-padding on FFT spectral
+        analysis.  In your DSP system, experiment with different
+        inputs, changing
+        <m:math>
+	  <m:ci>N</m:ci>
+	</m:math> and the type of window.  Can you explain what happens
+        as the input frequency is increased beyond the Nyquist rate? Does the
+        <m:math>
+          <m:apply>
+            <m:power/>
+	    <m:apply>
+	      <m:abs/>
+	      <m:apply>
+		<m:ci type="fn">X</m:ci>
+		<m:ci>k</m:ci>
+	      </m:apply>
+	    </m:apply>
+	    <m:cn>2</m:cn>
+          </m:apply>
+        </m:math> coincide with what you expect from Matlab?  What is
+        the relationship between the observed spectrum and the DTFT?
+        What would happen if the FFT calculation takes longer than it
+        takes to fill <code>inputs</code> with
+        <m:math>
+	  <m:ci>N</m:ci>
+	</m:math> samples? How long does it take to compute each FFT?
+        What are the tradeoffs between writing code in C versus assembly?
+      </para>
+    </section>
+
+    <section id="sec_appendix_a">
+      <title>Appendix A:</title>
+
+      <para id="sec_appendix_a_para1">
+        <link resource="lab4main.c">lab4main.c</link>
+      </para>
+
+      <code display="block" id="block6">
+        
+1    /* v:/ece420/54x/dspclib/lab4main.c */
+2    /* dgs - 9/14/2001                  */
+3    /* mdk - 2/10/2004   C FFT update   */
+4
+5    #include "v:/ece420/54x/dspclib/core.h"
+6
+7    /* comment the next line to use assembly fft */
+8    #define C_FFT
+9
+10    #ifdef C_FFT /* Use C FFT */
+11
+12       #include "window.h"
+13       #include "lab4.h" /* Number of C FFT points defined here */
+14
+15       /* function defined in lab4fft.c */
+16       void fft(void);
+17
+18       /* FFT data buffers */
+19       int real[N]; /* Real part of data      */
+20       int imag[N]; /* Imaginary part of data */
+21
+22    #else        /* Use assembly FFT */
+23
+24       #define N 1024   /* Number of assembly FFT points */
+25
+26       /* Function defined by c_fft_given.asm */
+27       void bit_rev_fft(void);
+28
+29       /* FFT data buffers (declared in c_fft_given.asm) */
+30       extern int bit_rev_data[N*2]; /* Data input for bit-reverse function */
+31       extern int fft_data[N*2];     /* In-place FFT &amp; Output array         */
+32       extern int window[N];         /* The Hamming window                  */
+33
+34    #endif       /* C_FFT */
+35
+36
+37    /* Our input/output buffers */
+38    int inputs[N];
+39    int outputs[N];
+40
+41    volatile int input_full = 0;  /* volatile means interrupt changes it */
+42    int count = 0;
+43
+44
+45    interrupt void irq(void)
+46    {
+47      int *Xmitptr,*Rcvptr;                      /* pointers to Xmit &amp; Rcv Bufs   */
+48      int i;
+49
+50      static int in_irq = 0;           /* Flag to prevent reentrance */
+51
+52      /* Make sure we're not in the interrupt (should never happen) */
+53      if( in_irq )
+54        return;
+55
+56      /* Mark we're processing, and enable interrupts */
+57      in_irq = 1;
+58      enable_irq();
+59
+60      /* The following waitaudio call is guaranteed not to
+61         actually wait; it will simply return the pointers. */
+62      WaitAudio(&amp;Rcvptr,&amp;Xmitptr);
+63
+64      /* input_full should never be true... */
+65      if( !input_full )
+66      {
+67        for (i=0; i&lt;BlockLen; i++)
+68        {
+69          /* Save input, and echo to channel 1 */
+70          inputs[count] = Xmitptr[6*i] = Rcvptr[4*i];
+71
+72          /* Send FFT output to channel 2 */
+73          Xmitptr[6*i+1] = outputs[count];
+74
+75          count++;
+76        }
+77      }
+78
+79      /* Have we collected enough data yet? */
+80      if( count &gt;= N )
+81        input_full = 1;
+82
+83      /* We're not in the interrupt anymore... */
+84      disable_irq();
+85      in_irq = 0;
+86    }
+87
+88
+89    main()
+90    {
+91      /* Initialize IRQ stuff */
+92      count = 0;
+93      input_full = 0;
+94      SetAudioInterrupt(irq);        /* Set up interrupts */
+95
+96      while (1)
+97      {
+98        while( !input_full );     /* Wait for a data buffer to collect */
+99
+100        /* From here until we clear input_full can only take *
+101         * BlockLen sample times, so don't do too much here. */
+102
+103        /* First, transfer inputs and outputs */
+104
+105    #ifdef C_FFT /* Use C FFT */
+106        /* I n s e r t   c o d e   t o   f i l l   */
+107        /* C   F F T   b u f f e r s               */
+108
+109    #else        /* Use assembly FFT */
+110        /* I n s e r t   c o d e   t o   f i l l   */
+111        /* a s s e m b l y   F F T   b u f f e r s */
+112
+113    #endif       /* C_FFT */
+114
+115        /* Done with that... ready for new data collection */
+116        count = 0;      /* Need to reset the count                */
+117        input_full = 0; /* Mark we're ready to collect more data  */
+118
+119        /**********************************************************/
+120        /* Now that we've gotten the data moved, we can do the    */
+121        /* more lengthy processing.                               */
+122
+123    #ifdef C_FFT /* Use C FFT */
+124
+125        /* Multiply the input signal by the Hamming window.       */
+126        /* . . . i n s e r t   C / a s m   code . . .             */
+127
+128        /* Bit-reverse and compute FFT in C                       */
+129        fft();
+130
+131        /* Now, take absolute value squared of FFT                */
+132        /* . . . i n s e r t   C / a s m   code . . .             */
+133
+134        /* Last, set the DC coefficient to -1 for a trigger pulse */
+135        /* . . . i n s e r t   C / a s m   code . . .             */
+136
+137        /* done, wait for next time around!                       */
+138
+139
+140    #else        /* Use assembly FFT */
+141
+142        /* Multiply the input signal by the Hamming window.       */
+143        /* . . . i n s e r t   C / a s m   code . . .             */
+144
+145        /* Bit-reverse and compute FFT in assembly                */
+146        bit_rev_fft();
+147
+148        /* Now, take absolute value squared of FFT                */
+149        /* . . . i n s e r t   C / a s m   code . . .             */
+150
+151        /* Last, set the DC coefficient to -1 for a trigger pulse */
+152        /* . . . i n s e r t   C / a s m   code . . .             */
+153
+154        /* done, wait for next time around!                       */
+155
+156
+157    #endif       /* C_FFT */
+158
+159      }
+160    }
+        
+      </code>
+    </section>
+
+    <section id="sec_appendix_b">
+      <title>Appendix B:</title>
+
+      <para id="sec_appendix_b_para1">
+        <link resource="c_fft_given.asm">c_fft_given.asm</link>
+      </para>
+
+      <code display="block" id="block7">
+        
+1    ; v:\ece420\54x\dspclib\c_fft_given.asm
+2    ; dgs - 9/14/2001
+3        .copy "v:\ece420\54x\dspclib\core.inc"
+4
+5        .global	_bit_rev_data
+6        .global _fft_data
+7        .global _window
+8	
+9        .global _bit_rev_fft
+10
+11        .sect	".data"
+12
+13        .align 4*N
+14    _bit_rev_data .space 16*2*N	; Input to _bit_rev_fft
+15
+16        .align	4*N
+17    _fft_data .space 16*2*N		; FFT output buffer
+18
+19
+20    ; Copy in the Hamming window
+21    _window					; The Hamming window
+22        .copy	"window.asm"	
+23
+24        .sect ".text"
+25
+26    _bit_rev_fft
+27        ENTER_ASM
+28                                                  
+29        call bit_rev                    ; Do the bit-reversal.
+30
+31        call fft		        ; Do the FFT
+32
+33        LEAVE_ASM
+34        RET                                     
+35
+36    bit_rev:
+37        STM     #_bit_rev_data,AR3          ; AR3 -&gt; original input
+38        STM     #_fft_data,AR7              ; AR7 -&gt; data processing buffer
+39        MVMM    AR7,AR2                     ; AR2 -&gt; bit-reversed data
+40        STM     #K_FFT_SIZE-1,BRC
+41        RPTBD   bit_rev_end-1
+42        STM     #K_FFT_SIZE,AR0             ; AR0 = 1/2 size of circ buffer
+43        MVDD    *AR3+,*AR2+
+44        MVDD    *AR3-,*AR2+
+45        MAR     *AR3+0B
+46    bit_rev_end:
+47        NOP
+48        RET
+49
+50    ; Copy the actual FFT subroutine.
+51    fft_data  .set	_fft_data	; FFT code needs this.
+52        .copy 	"v:\ece420\54x\dsplib\fft.asm"
+53
+54
+55    ; If you need any more assembly subroutines, make sure you name them
+56    ; _name, and include a ".global _name" directive at the top. Also,
+57    ; don't forget to use ENTER_ASM at the beginning, and LEAVE_ASM
+58    ; and RET at the end!
+        
+      </code>
+    </section>
+
+    <section id="sec_appendix_c">
+      <title>Appendix C:</title>
+
+      <para id="sec_appendix_c_para1">
+        <link resource="lab4.h">lab4.h</link>
+      </para>
+
+      <code display="block" id="block8">
+        
+1    #define N 1024       /* Number of FFT points */
+2    #define logN 10
+        
+      </code>
+
+      <para id="sec_appendix_c_para2">
+        <link resource="lab4fft.c">lab4fft.c</link>
+      </para>
+
+      <code display="block" id="block9">
+        
+1    /*****************************************************************/
+2    /* lab4fft.c                                                     */
+3    /* Douglas L. Jones                                              */
+4    /* University of Illinois at Urbana-Champaign                    */
+5    /* January 19, 1992                                              */
+6    /* Changed for use w/ short integers and lookup table for ECE420 */
+7    /* Matt Kleffner                                                 */
+8    /* February 10, 2004                                             */
+9    /*                                                               */
+10    /*   fft: in-place radix-2 DIT DFT of a complex input            */
+11    /*                                                               */
+12    /*   Permission to copy and use this program is granted          */
+13    /*   as long as this header is included.                         */
+14    /*                                                               */
+15    /* WARNING:                                                      */
+16    /*   This file is intended for educational use only, since most  */
+17    /*   manufacturers provide hand-tuned libraries which typically  */
+18    /*   include the fastest fft routine for their DSP/processor     */
+19    /*   architectures. High-quality, open-source fft routines       */
+20    /*   written in C (and included in MATLAB) can be found at       */
+21    /*   http://www.fftw.org                                         */
+22    /*                                                               */
+23    /*   #defines expected in lab4.h                                 */
+24    /*         N:   length of FFT: must be a power of two            */
+25    /*      logN:   N = 2**logN                                      */
+26    /*                                                               */
+27    /*   16-bit-limited input/output (must be defined elsewhere)     */
+28    /*   real:   integer array of length N with real part of data    */
+29    /*   imag:   integer array of length N with imag part of data    */
+30    /*                                                               */
+31    /*   sinetables.h must                                           */
+32    /*   1) #define Nt to an equal or greater power of two than N    */
+33    /*   2) contain the following integer arrays with                */
+34    /*      element magnitudes bounded by M = 2**15-1:               */
+35    /*         costable:   M*cos(-2*pi*n/Nt), n=0,1,...,Nt/2-1       */
+36    /*         sintable:   M*sin(-2*pi*n/Nt), n=0,1,...,Nt/2-1       */
+37    /*                                                               */
+38    /*****************************************************************/
+39
+40    #include "lab4.h"
+41    #include "sinetables.h"
+42
+43    extern int real[N];
+44    extern int imag[N];
+45
+46    void fft(void)
+47    {
+48       int   i,j,k,n1,n2,n3;
+49       int   c,s,a,t,Wr,Wi;
+50
+51       j = 0;            /* bit-reverse */
+52       n2 = N &gt;&gt; 1;
+53       for (i=1; i &lt; N - 1; i++)
+54       {
+55          n1 = n2;
+56          while ( j &gt;= n1 )
+57          {
+58             j = j - n1;
+59             n1 = n1 &gt;&gt; 1;
+60          }
+61          j = j + n1;
+62
+63          if (i &lt; j)
+64          {
+65             t = real[i];
+66             real[i] = real[j];
+67             real[j] = t;
+68             t = imag[i];
+69             imag[i] = imag[j];
+70             imag[j] = t;
+71          }
+72       }
+73
+74       /* FFT */
+75       n2 = 1; n3 = Nt;
+76
+77       for (i=0; i &lt; logN; i++)
+78       {
+79          n1 = n2;      /* n1 = 2**i     */
+80          n2 = n2 + n2; /* n2 = 2**(i+1) */
+81          n3 = n3 &gt;&gt; 1; /* cos/sin arg of -6.283185307179586/n2 */
+82          a = 0;
+83
+84          for (j=0; j &lt; n1; j++)
+85          {
+86             c = costable[a];
+87             s = sintable[a];
+88             a = a + n3;
+89
+90             for (k=j; k &lt; N; k=k+n2)
+91             {
+92                /* Code for standard 32-bit hardware, */
+93                /* with real,imag limited to 16 bits  */
+94                /*
+95                Wr = (c*real[k+n1] - s*imag[k+n1]) &gt;&gt; 15;
+96                Wi = (s*real[k+n1] + c*imag[k+n1]) &gt;&gt; 15;
+97                real[k+n1] = (real[k] - Wr) &gt;&gt; 1;
+98                imag[k+n1] = (imag[k] - Wi) &gt;&gt; 1;
+99                real[k] = (real[k] + Wr) &gt;&gt; 1;
+100                imag[k] = (imag[k] + Wi) &gt;&gt; 1;
+101                */
+102                /* End standard 32-bit code */
+103
+104                /* Code for TI TMS320C54X series */
+105
+106                Wr = ((long int)(c*real[k+n1]) - (long int)(s*imag[k+n1])) &gt;&gt; 15;
+107                Wi = ((long int)(s*real[k+n1]) + (long int)(c*imag[k+n1])) &gt;&gt; 15;
+108                real[k+n1] = ((long int)real[k] - (long int)Wr) &gt;&gt; 1;
+109                imag[k+n1] = ((long int)imag[k] - (long int)Wi) &gt;&gt; 1;
+110                real[k] = ((long int)real[k] + (long int)Wr) &gt;&gt; 1;
+111                imag[k] = ((long int)imag[k] + (long int)Wi) &gt;&gt; 1;
+112
+113                /* End code for TMS320C54X series */
+114
+115                /* Intrinsic code for TMS320C54X series */
+116                /*
+117                Wr = _ssub(_smpy(c, real[k+n1]), _smpy(s, imag[k+n1]));
+118                Wi = _sadd(_smpy(s, real[k+n1]), _smpy(c, imag[k+n1]));
+119                real[k+n1] = _sshl(_ssub(real[k], Wr),-1);
+120                imag[k+n1] = _sshl(_ssub(imag[k], Wi),-1);
+121                real[k] = _sshl(_sadd(real[k], Wr),-1);
+122                imag[k] = _sshl(_sadd(imag[k], Wi),-1);
+123                */
+124                /* End intrinsic code for TMS320C54X series */
+125             }
+126          }
+127       }
+128       return;
+129    }
+        
+      </code>
+
+    </section>
+
+  </content>
+
+</document>

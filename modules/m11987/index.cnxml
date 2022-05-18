@@ -1,0 +1,258 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml">
+  <title>Video Processing Part 1: Introductory Exercise</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>28d05e97-ec06-4c2e-82d0-9c906514d82d</md:uuid>
+</metadata>
+
+  <content>
+    <section id="sec1">
+      <title>Introduction</title>
+<para id="one">
+       The purpose of this lab is to acquaint you with the TI Image Developers Kit (IDK). The IDK contains a floating point C6711 DSP, and other hardware that enables real time video/image processing. In addition to the IDK, the video processing lab bench is equipped with an NTSC camera and a standard color computer monitor.
+</para>
+<para id="two">
+You will complete an introductory exercise to gain familiarity with the IDK programming environment. In the exercise, you will modify a C skeleton to horizontally flip and invert video input (black and white) from the camera. The output of your video processing algorithm will appear in the top right quadrant of the monitor. 
+</para>
+<para id="three">
+In addition, you will analyze existing C code that implements filtering and edge detection algorithms to gain insight into IDK programming methods. The output of these "canned" algorithms, along with the unprocessed input, appears in the other quadrants of the monitor.
+</para>
+<para id="four">
+Finally, you will create an auto contrast function. And will also work with a color video feed and create a basic user interface, which uses the input to control some aspect of the display.
+</para>
+<para id="five">
+An additional goal of this lab is to give you the opportunity to discover tools for developing an original project using the IDK.
+    </para>
+
+    <section id="sec1b">
+      <title>Important Documentation</title>
+     <para id="six">
+        The following documentation will certainly prove useful:
+
+        <list id="doc">
+
+          <item>The <link url="http://www-s.ti.com/sc/psheets/spru494a/spru494a.pdf">IDK
+          User's Guide</link>.  Section 2 is the most important.</item>
+
+          <item>The <link url="http://www-s.ti.com/sc/psheets/spru499/spru499.pdf">IDK
+          Video Device Drivers User's Guide</link>.  The sections on timing are not too important, but pay attention to the Display and Capture systems and have a good idea of how they work.</item>
+
+          <item>The <link url="http://www-s.ti.com/sc/psheets/spru495a/spru495a.pdf">IDK
+          Programmer's Guide</link>.  Sections 2 and 5 are the ones needed. Section 2 is very, very important in Project Lab 2. It is also useful in understanding “streams” in project lab 1.</item>
+
+        </list>
+
+        <note type="Note" id="idm7407376"><label>Note</label>Other manuals may be found on TI's <link url="http://www.ti.com">website</link> by searching for
+        TMS320C6000 IDK</note>
+      </para>
+
+</section>
+
+</section>
+
+<section id="sec2">
+      <title>Video Processing - The Basics</title>
+<para id="seven">
+The camera on the video processing lab bench generates a video signal in NTSC format. NTSC is a standard for transmitting and displaying video that is used in television. The signal from the camera is connected to the "composite input" on the IDK board (the yellow plug). This is illustrated in Figure 2-1 on page 2-3 of the IDK User's Guide. Notice that the IDK board is actually two boards stacked on top of each other. The bottom board contains the C6711 DSP, where your image processing algorithms will run. The daughterboard is on top, it contains the hardware for interfacing with the camera input and monitor output. For future video processing projects, you may connect a video input other than the camera, such as the output from a DVD player. The output signal from the IDK is in RGB format, so that it may be displayed on a computer monitor.
+</para>
+<para id="eight">
+At this point, a description of the essential terminology of the IDK environment is in order. The video input is first decoded and then sent to the FPGA, which resides on the daughterboard. The FPGA is responsible for video capture and for the filling of the input frame buffer (whose contents we will read). For a detailed description of the FPGA and its functionality, we advise you to read Chapter 2 of the IDK User's Guide.
+</para>
+<para id="nine">
+The Chip Support Library (CSL) is an abstraction layer that allows the IDK daughterboard to be used with the entire family of TI C6000 DSPs (not just the C6711 that we're using); it takes care of what is different from chip to chip.
+</para>
+<para id="ten">
+The Image Data Manager (IDM) is a set of routines responsible for moving data between on-chip internal memory, and external memory on the board, during processing. The IDM helps the programmer by taking care of the pointer updates and buffer management involved in transferring data. Your DSP algorithms will read and write to internal memory, and the IDM will transfer this data to and from external memory. Examples of external memory include temporary "scratch pad" buffers, the input buffer containing data from the camera, and the output buffer with data destined for the RGB output.
+</para>
+<para id="eleven">
+The two different memory units exist to provide rapid access to a larger memory capacity. The external memory is very large in size – around 16 MB, but is slow to access. But the internal is only about 25 KB or so and offers very fast access times. Thus we often store large pieces of data, such as the entire input frame, in the external memory. We then bring it in to internal memory, one small portion at a time, as needed. A portion could be a line or part of a line of the frame. We then process the data in internal memory and then repeat in reverse, by outputting the results line by line (or part of) to external memory. This is full explained in Project Lab 2, and this manipulation of memory is important in designing efficient systems.
+</para>
+<para id="twelve">
+The TI C6711 DSP uses a different instruction set than the 5400 DSP's you are familiar with in lab. The IDK environment was designed with high level programming in mind, so that programmers would be isolated from the intricacies of assembly programming. Therefore, we strongly suggest that you do all your programming in C. Programs on the IDK typically consist of a main program that calls an image processing routine. 
+</para>
+<para id="thirteen">
+The main program serves to setup the memory spaces needed and store the pointers to these in objects for easy access. It also sets up the input and output channels and the hardware modes (color/grayscale ...). In short it prepares the system for our image processing algorithm.
+</para>
+<para id="fourteen">
+The image processing routine may make several calls to specialized functions. These specialized functions consist of an outer wrapper and an inner component. The wrapper oversees the processing of the entire image, while the component function works on parts of an image at a time. And the IDM moves data back and forth between internal and external memory. 
+</para>
+<para id="n15">
+As it brings in one line in from external memory, the component function performs the processing on this one line. Results are sent back to the wrapper. And finally the wrapper contains the IDM instructions to pass the output to external memory or wherever else it may be needed.
+</para>
+<para id="n16">
+Please note that this is a good methodology used in programming for the IDK. However it is very flexible too, the "wrapper" and "component functions" are C functions and return values, take in parameters and so on too. And it is possible to extract/output multiple lines or block etc. as later shown.
+</para>
+<para id="n17">
+In this lab, you will modify a component to implement the flipping and inverting algorithm. And you will perform some simple auto-contrasting as well as work with color.
+</para>
+<para id="n18">
+In addition, the version of Code Composer that the IDK uses is different from the one you have used previously. The IDK uses Code Composer Studio v2.1. It is similar to the other version, but the process of loading code is slightly different.
+</para>
+
+</section>
+
+<section id="sec3">
+      <title>Code Description</title>
+
+<section id="sec3a">
+      <title>Overview and I/O</title>
+<para id="n19">
+The next few sections describe the code used. First please copy the files needed by following the instructions in the "Part 1" section of this document. This will help you easily follow the next few parts. 
+</para>
+<para id="n20">
+The program flow for image processing applications may be a bit different from your previous experiences in C programming. In most C programs, the main function is where program execution starts and ends. In this real-time application, the main function serves only to setup initializations for the cache, the CSL, and the DMA (memory access) channel. When it exits, the main task, tskMainFunc(), will execute automatically, starting the DSP/BIOS. It will loop continuously calling functions to operate on new frames and this is where our image processing application begins.
+</para>
+<para id="n21">
+The tskMainFunc(), in main.c, opens the handles to the board for image capture (VCAP_open()) and to the display (VCAP_open()) and calls the grayscale function. Here, several data structures are instantiated that are defined in the file img_proc.h. The IMAGE structures will point to the data that is captured by the FPGA and the data that will be output to the display. The SCRATCH_PAD structure points to our internal and external memory buffers used for temporary storage during processing. LPF_PARAMS is used to store filter coefficients for the low pass filter.
+</para>
+<para id="n22">
+The call to img_proc() takes us to the file img_proc.c. First, several variables are declared and defined. The variable quadrant will denote on which quadrant of the screen we currently want output; out_ptr will point to the current output spot in the output image; and pitch refers to the byte offset (distance) between two lines. This function is the high level control for our image-processing algorithm. See algorithm flow.
+</para>
+
+<figure id="fig1">
+	<media id="idp902496" alt=""><image src="../../media/video1.jpg" mime-type="image/jpeg"/></media>
+	<caption>Algorithm Flow</caption>
+</figure>
+
+<para id="n23">
+The first function called is the pre_scale_image function in the file pre_scale_image.c. The purpose of this function is to take the 640x480 image and scale it down to a quarter of its size by first downsampling the input rows by two and then averaging every two pixels horizontally. The internal and external memory spaces, pointers to which are in the scratch pad, are used for this task. The vertical downsampling occurs when every other line is read into the internal memory from the input image. Within internal memory, we will operate on two lines of data (640 columns/line) at a time, averaging every two pixels (horizontal neighbors) and producing two lines of output (320 columns/line) that are stored in the external memory.
+</para>
+<para id="n24">
+To accomplish this, we will need to take advantage of the IDM by initializing the input and output streams. At the start of the function, two instantiations of a new structure dstr_t are declared. You can view the structure contents of dstr_t on p. 2-11 of the IDK Programmer's Guide. These structures are stream "objects". They give us access to the data when using the dstr_open() command. In this case dstr_i is an input stream as specified in the really long command dstr_open(). Thus after opening this stream we can use the get_data command to get data one line at a time. Streams and memory usage are described in greater detail in the second project lab. This data flow for the pre-scale is shown in data flow.
+</para> 
+<figure id="fig2">
+	<media id="idm8590864" alt=""><image src="../../media/video2.jpg" mime-type="image/jpeg"/></media>
+	<caption>Data flow of input and output streams.</caption>
+</figure>
+<para id="n25">
+To give you a better understanding of how these streams are created, let's analyze the parameters passed in the first call to dstr_open() which opens an input stream.
+</para>
+<para id="n26">
+External address: in_image-&gt;data
+This is a pointer to the place in external memory serving as the source of our input data (it's the source because the last function parameter is set to DSTR_INPUT). We're going to bring in data from external to internal memory so that we can work on it. This external data represents a frame of camera input. It was captured in the main function using the VCAP_getframe() command.
+</para>
+<para id="n27">
+External size: (rows + num_lines) * cols = (240 + 2) * 640
+This is the total size of the input data which we will bring in. We will only be taking two lines at a time from in_image-&gt;data, so only 240 rows. The "plus 2" represents two extra rows of input data which represent a buffer of two lines - used when filtering, which is explained later.
+</para>
+<para id="n28">
+Internal address: int_mem
+This is a pointer to an 8x640 array, pointed to by scratchpad-&gt;int_data. This is where we will be putting the data on each call to dstr_get(). We only need part of it, as seen in the next parameter, as space to bring in data. 
+</para>
+<para id="n29">
+Internal size: 2 * num_lines * cols = 2 * 2 * 640
+The size of space available for data to be input into int_mem from in_image-&gt;data. We pull in two lines of the input frame so it num_lines * cols. We have the multiply by 2 as we are using double buffering for bringing in the data. We need double the space in internal memory than the minimum needed, the reason is fully explained in IDK Programmer's Guide.
+</para>
+<para id="n30">
+Number of bytes/line: cols = 640, Number of lines: num_lines = 2
+Each time dstr_get_2D() is called, it will return a pointer to 2 new lines of data, 640 bytes in length. We use the function dstr_get_2D(), since we are pulling in two lines of data. If instead we were only bringing in one line, we would use dstr_get() statements.
+</para>
+<para id="n31">
+External memory increment/line: stride*cols = 1*640
+The IDM increments the pointer to the external memory by this amount after each dstr_get() call.
+</para>
+<para id="n32">
+Window size: 1	 for double buffered single line of data
+(Look at the three documentation pdfs for a full explanation of double buffering)
+The need for the window size is not really apparent here. 
+It will become apparent when we do the 3x3 block convolution. Then, the window size will be set to 3 (indicating three lines of buffered data). This tells the IDM to send a pointer to extract 3 lines of data when dstr_get() is called, but only increment the stream's internal pointer by 1 (instead of 3) the next time dstr_get() is called. Thus you will get overlapping sets of 3 lines on each dstr_get() call. This is not a useful parameter when setting up an output stream.
+</para>
+<para id="n33">
+Direction of input: DSTR_INPUT
+Sets the direction of data flow. If it had been set to DSTR_OUTPUT (as done in the next call to dstr_open()), we would be setting the data to flow from the Internal Address to the External Address.
+</para>
+<para id="n34">
+We then setup our output stream to write data to a location in external memory which we had previously created.
+</para>
+<para id="n35">
+Once our data streams are setup, we can begin processing by first extracting a portion of input data using dstr_get_2D(). This command pulls the data in and we setup a pointer (in_data) to point to this internal memory spot. We also get a pointer to a space where we can write the output data (out_data) when using dstr_put(). Then we call the component function pre_scale() (in pre_scale.c) to operate on the input data and write to the output data space, using these pointers. 
+</para>
+<para id="n36">
+The prescaling function will perform the horizontal scaling by averaging every two pixels. This algorithm operates on four pixels at a time. The entire function is iterated within pre_scale_image() 240 times, which results in 240 * 2 rows of data being processed – but only half of that is output. 
+</para>
+<para id="n37">
+Upon returning to the wrapper function, pre_scale_image, a new line is extracted; the pointers are updated to show the location of the new lines and the output we had placed in internal memory is then transferred out. This actually happens in the dstr_put() function – thus is serves a dual purpose; to give us a pointer to internal memory which we can write to, and the transferring of its contents to external memory.
+</para>
+<para id="n38">
+Before pre_scale_image() exits, the data streams are closed, and one line is added to the top and bottom of the image to provide context necessary for the next processing steps (The extra two lines - remember?). Also note, it is VERY important to close streams after they have been used. 
+If not done, unusual things such as random crashing and so may occur which are very hard to track down.
+</para>
+<para id="n39">
+Now that the input image has been scaled to a quarter of its initial size, we will proceed with the four image processing algorithms. In img_proc.c, the set_ptr() function is called to set the variable out_ptr to point to the correct quadrant on the 640x480 output image. Then copy_image(), copy_image.c, is called, performing a direct copy of the scaled input image into the lower right quadrant of the output.
+</para>
+<para id="n40">
+Next we will set the out_ptr to point to the upper right quadrant of the output image and call conv3x3_image() in conv3x3_image.c. As with pre_scale_image(), the _image indicates this is only the wrapper function for the ImageLIB (library functions) component, conv3x3(). As before, we must setup our input and output streams. This time, however, data will be read from the external memory (where we have the pre-scaled image) and into internal memory for processing, and then be written to the output image. Iterating over each row, we compute one line of data by calling the component function conv3x3() in conv3x3.c.
+</para>
+<para id="n41">
+In conv3x3(), you will see that we perform a 3x3 block convolution, computing one line of data with the low pass filter mask. Note here that the variables IN1[i], IN2[i], and IN3[i] all grab only one pixel at a time. This is in contrast to the operation of pre_scale() where the variable in_ptr[i] grabbed 4 pixels at a time. This is because in_ptr was of type unsigned int, which implies that it points to four bytes (the size of an unsigned int is 4 bytes) of data at a time. IN1, IN2, and IN3 are all of type unsigned char, which implies they point to a single byte of data. In block convolution, we are computing the value of one pixel by placing weights on a 3x3 block of pixels in the input image and computing the sum. What happens when we are trying to compute the rightmost pixel in a row? The computation is now bogus. That is why the wrapper function copies the last good column of data into the two rightmost columns. You should also note that the component function ensures output pixels will lie between 0 and 255. For the same reason we provided the two extra "copied" lines when performing the prescale.
+</para>
+<para id="n42">
+Back in img_proc.c, we can begin the edge detection algorithm, sobel_image(), for the lower left quadrant of the output image. This wrapper function, located in sobel_image.c, performs edge detection by utilizing the assembly written component function sobel() in sobel.asm. The wrapper function is very similar to the others you have seen and should be straightforward to understand. Understanding the assembly file is considerably more difficult since you are not familiar with the assembly language for the c6711 DSP. As you'll see in the assembly file, the comments are very helpful since an "equivalent" C program is given there.
+</para>
+<para id="n43">
+The Sobel algorithm convolves two masks with a 3x3 block of data and sums the results to produce a single pixel of output. One mask has a preference for vertical edges while the other mask for horizontal ones. This algorithm approximates a 3x3 nonlinear edge enhancement operator. The brightest edges in the result represent a rapid transition (well-defined features), and darker edges represent smoother transitions (blurred or blended features).
+</para>
+
+</section>
+</section>
+   
+<section id="sec4">
+      <title>Part One</title>
+<para id="n44">
+This section provides a hands-on introduction to the IDK environment that will prepare you for the lab exercise. First, connect the power supply to the IDK module. Two green lights on the IDK board should be illuminated when the power is connected properly.
+</para>
+<para id="n45">
+You will need to create a directory img_proc for this project in your home directory. Enter this new directory, and then copy the following files as follows (again, be sure you're in the directory img_proc when you do this):
+</para>
+<para id="n46">
+<list id="files">
+<item>copy V:\ece320\idk\c6000\IDK\Examples\NTSC\img_proc</item>
+<item>copy V:\ece320\idk\c6000\IDK\Drivers\include</item>
+<item>copy V:\ece320\idk\c6000\IDK\Drivers\lib</item>
+</list>
+</para>        
+<para id="n47">     
+After the IDK is powered on, open Code Composer 2 by clicking on the "CCS 2" icon on the desktop. From the "Project" menu, select "Open," and then open img_proc.pjt. You should see a new icon appear at the menu on the left side of the Code Composer window with the label img_proc.pjt. Double click on this icon to see a list of folders. There should be a folder labeled "Source." Open this folder to see a list of program files.
+</para>        
+<para id="n48"> 
+The main.c program calls the img_proc.c function that displays the output of four image processing routines in four quadrants on the monitor. The other files are associated with the four image processing routines. If you open the "Include" folder, you will see a list of header files. To inspect the main program, double click on the main.c icon. A window with the C code will appear to the right.
+</para>        
+<para id="n49"> 
+Scroll down to the tskMainFunc() in the main.c code. A few lines into this function, you will see the line LOG_printf(&amp;trace,"Hello\n"). This line prints a message to the message log, which can be useful for debugging. Change the message "Hello\n" to "Your Name\n" (the "\n" is a carriage return). Save the file by clicking the little floppy disk icon at the top left corner of the Code Composer window.
+</para>        
+<para id="n50"> 
+To compile all of the files when the ".out" file has not yet been generated, you need to use the "Rebuild All" command. The rebuild all command is accomplished by clicking the button displaying three little red arrows pointing down on a rectangular box. This will compile every file the main.c program uses. If you've only changed one file, you only need to do a "Incremental Build," which is accomplished by clicking on the button with two little blue arrows pointing into a box (immediately to the left of the "Rebuild All" button). Click the "Rebuild All" button to compile all of the code. A window at the bottom of Code Composer will tell you the status of the compiling (i.e., whether there were any errors or warnings). You might notice some warnings after compilation - don't worry about these.
+</para>        
+<para id="n51"> 
+Click on the "DSP/BIOS" menu, and select "Message Log." A new window should appear at the bottom of Code Composer. Assuming the code has compiled correctly, select "File" -&gt; "Load Program" and load img_proc.out (the same procedure as on the other version of Code Composer). Now select "Debug" -&gt; "Run" to run the program (if you have problems, you may need to select "Debug" -&gt; "Go Main" before running). You should see image processing routines running on the four quadrants of the monitor. The upper left quadrant (quadrant 0) displays a low pass filtered version of the input. The low pass filter "passes" the detail in the image, and attenuates the smooth features, resulting in a "grainy" image. The operation of the low pass filter code, and how data is moved to and from the filtering routine, was described in detail in the previous section. The lower left quadrant (quadrant 2) displays the output of an edge detection algorithm. The top right and bottom right quadrants (quadrants 1 and 3, respectively), show the original input displayed unprocessed. At this point, you should notice your name displayed in the message log.
+</para>        
+<section id="sec4b">
+      <title>Implementation</title>
+      
+<para id="n52"> 
+You will create the component code flip_invert.c to implement an algorithm that horizontally flips and inverts the input image. The code in flip_invert.c will operate on one line of the image at a time. The copyim.c wrapper will call flip_invert.c once for each row of the prescaled input image. The flip_invert function call should appear as follows:
+</para>
+<para id="n53">       
+flip_invert(in_data, out_data, cols);
+</para>        
+<para id="n54">       
+where in_data and out_data are pointers to the input and output buffers in internal memory, and cols is the length of each column of the prescaled image.
+</para>        
+<para id="n55">
+The img_proc.c function should call the copyim.c wrapper so that the flipped and inverted image appears in the top right (first) quadrant. The call to copyim is as follows: copyim(scratch_pad, out_img, out_ptr, pitch);
+</para>        
+<para id="n56">
+This call is commented out in the im_proc.c code. The algorithm that copies the image (unprocessed) to the screen is currently displayed in quadrant 1, so you will need to comment out its call and replace it with the call to copyim.
+</para>        
+<para id="n57">
+Your algorithm should flip the input picture horizontally, such that someone on the left side of the screen looking left in quadrant 3 will appear on the right side of the screen looking right. This is similar to putting a slide in a slide projector backwards. The algorithm should also invert the picture, so that something white appears black and vice versa. The inversion portion of the algorithm is like looking at the negative for a black and white picture. Thus, the total effect of your algorithm will be that of looking at the wrong side of the negative of a picture.
+<note type="Hint" id="idm476640"><label>Hint</label>Pixel values are represented as integers between 0 and 255.</note>
+</para>        
+<para id="n58">
+To create a new component file, write your code in a file called "flip_invert.c". You may find the component code for the low pass filter in "conv3x3_c.c" helpful in giving you an idea of how to get started. To compile this code, you must include it in the "img_proc" project, so that it appears as an icon in Code Composer. To include your new file, right click on the "img_proc.pjt" icon in the left window of Code Composer, and select "Add Files." Compile and run!
+</para>
+        
+</section>
+</section>
+
+  </content>
+  
+</document>

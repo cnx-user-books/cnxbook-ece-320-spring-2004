@@ -1,0 +1,63 @@
+\documentclass[11pt]{handout}
+\usepackage{moreverb}
+\usepackage{tabularx}
+\usepackage{epsf}
+\usepackage{epsfig}
+\usepackage{fancyheadings}
+\usepackage{fancybox}
+
+\renewcommand{\coursetitle}{ECE 320}
+\renewcommand{\handouttitle}{Speech Coding}
+\renewcommand{\handoutauthor}{Swaroop Appadwedula}
+\renewcommand{\semestertitle}{Spring 2000}
+
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+
+\setlength{\parindent}{5mm}
+\begin{document}
+
+\setlength{\baselineskip}{0.5cm}
+\setlength{\parskip}{0.5cm}
+
+\makeboxtitle
+\vspace{0.3cm}
+
+\section{Introduction}
+In this project lab, you will implement a linear predictive coder 
+for speech.  After recording speech signals, you will write 
+\matlab code to implement the Levinson-Durbin algorithm, as well as 
+assembly code to compute autocorrelation coefficients for overlapped 
+blocks.
+
+\input{lpc_theory_tutorial}
+
+\section{Matlab Exercises}
+
+\input{lpc_matlab_exercise}
+
+\section{Implementation}
+
+\input{lpc_54x_exercise}
+
+\section{Additional Issues}
+\begin{itemize}
+\item{Spanish vowels are easier to recognize using LPC.}
+\item{Compute error as ${\bf a}^{T}{\bf R}{\bf a}$, 
+      where ${\bf R}$ is the autocovariance or autocorrelation matrix 
+      of a test segment and ${\bf a}$ is the vector of prediction 
+      coefficients of a template segment.}
+\item{Use a pre-emphasis filter before LPC to emphasize frequencies of 
+      interest in the recognition or synthesis.}
+\item{The pitch period for males (80-150 Hz) is different than the 
+      pitch period of females.}
+\item{For voiced segments, $\frac{r_{ss}(T)}{r_{ss}(0)} \approx 0.25$, 
+      where $T$ is the pitch period.}
+\end{itemize}
+
+\bibliographystyle{ieeetr}
+\bibliography{../../ece320}
+
+\end{document}
+
+\bye

@@ -1,0 +1,60 @@
+\documentclass[11pt]{handout}
+\usepackage{moreverb}
+\usepackage{tabularx}
+\usepackage{epsf}
+\usepackage{epic}
+\usepackage{eepic}
+\usepackage{epsfig}
+\usepackage{epsf}
+\usepackage{fancyheadings}
+\usepackage{fancybox}
+
+\renewcommand{\coursetitle}{ECE 320}
+\renewcommand{\handouttitle}{Surround Sound}
+\renewcommand{\handoutauthor}{Swaroop Appadwedula}
+\renewcommand{\semestertitle}{Spring 2000}
+
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+
+\setlength{\parindent}{5mm}
+\begin{document}
+
+\setlength{\baselineskip}{0.5cm}
+\setlength{\parskip}{0.5cm}
+
+\makeboxtitle
+\vspace{0.3cm}
+
+\section{Introduction}
+To begin understanding how to decode the Dolby Pro Logic Surround Sound 
+standard, you will implement a Pro Logic encoder and a passive surround 
+sound decoder.  This handout is only meant to give you an approach to 
+tackling a surround sound project.  Significantly more technical 
+information regarding Dolby Pro Logic can be found at \cite{Dressler}.
+
+\section{Encoder}
+
+\input{surround_sound_matlab_exercise}
+
+\section{Decoder}
+
+\input{surround_sound_processor_exercise}
+
+\small
+\ifx\undefined\allcaps\def\allcaps#1{#1}\fi
+\begin{thebibliography}{2}
+
+\bibitem{Gundry}
+K. Gundry, ``An Introduction to Noise Reduction,''
+{\em http://www.dolby.com/ken/}.
+
+\bibitem{Dressler}
+R. Dressler, ``Dolby Prologic Surround Decoder Principles of Operation,''
+{\em http://www.dolby.com/tech/whtppr.html}.
+
+\end{thebibliography}
+
+\end{document}
+
+\bye 

@@ -1,0 +1,88 @@
+\documentclass[11pt]{handout}
+\usepackage{moreverb}
+\usepackage{epsfig}
+
+\renewcommand{\coursetitle}{ECE 320}
+\renewcommand{\handouttitle}{Using the Serial Port and \matlab}
+\renewcommand{\handoutauthor}{Daniel Sachs and Micheal Kramer}
+\renewcommand{\semestertitle}{Fall 1999}
+
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+
+\setlength{\parindent}{5mm}
+\begin{document}
+
+\setlength{\baselineskip}{0.5cm}
+\setlength{\parskip}{0.5cm}
+
+\makeboxtitle
+\vspace{0.3cm}
+
+\section{Using the Serial Port}
+
+\input{serial_54x_tutorial}
+
+\section{Using MATLAB to Control the DSP}
+
+\input{serial_matlab_gui_tutorial}
+
+\section{Implementation}
+
+Implementation of this lab should be done in two stages. First, use
+the new \verb+core.asm+ file and the 6-channel board to reimplement
+the variable-delay feedback echo that you wrote for Project Lab 1,
+adding in additional test points to take advantage of the 6-channel
+output. When this is complete, you will use the serial port on the DSP
+EVM to implement a MATLAB GUI that allows the two system gains and the
+echo delay to be changed using on-screen sliders. 
+
+Don't forget to set the PMST register to 0xFFE0 before you load code
+that has been built using the 6-channel core file.
+
+\subsection{Feedback System Implementation}
+
+\begin{figure}[htb]\centerline  {
+\epsfxsize=.6\textwidth\
+\epsffile{system.eps}          }
+\caption{Feedback System with Test Points}
+\label{fig: system}
+\end{figure}
+
+First, implement the Figure \ref{fig: system} shown using the 
+surround board and its \verb+core.asm+ file. Make
+sure to use the \verb+READPROG+ and \verb+WRITPROG+ macros to access
+the external program RAM instead of the \verb+reada+ and \verb+writa+
+opcodes you used before.  You will use both channels of input by summing
+the two inputs (so that either one, or both, may be used as an input to
+the system). You will use the multichannel output by sending signals at
+several test points to the 6-channel board's D/A converters:
+
+\begin{itemize}
+  \item{The summed input signal}
+  \item{The input signal after gain stage $G1$}
+  \item{The data going into the long delay}
+  \item{The data coming out of the delay}
+\end{itemize}
+
+Note that the data going into the long delay (D/A 3 in the Figure
+\ref{fig: system}) is the output of the system you implemented in Project
+Lab I.
+
+As you implement this code, ensure that the delay $n$ and the gain
+values $G_1$ and $G_2$ are stored in memory and can be easily changed
+using the debugger. If you do this, it will be easier to extend your
+code to accept its parameters from MATLAB in Part 2.
+
+\subsection{MATLAB Interface Implementation}
+
+Using the MATLAB interface outlined above as a base, write MATLAB code to send
+commands to the serial interface based on three sliders: two gain sliders
+(for $G_1$ and $G_2$) and one delay slider (for $n$). Then modify the code
+you wrote reimplementing Project Lab I to accept those commands and change
+the values for $G_1$, $G_2$ and $n$. Make sure that $n$ can be set to
+values spanning the full range of 0 to 131,072, although it is not necessary
+that every number in that range be represented. 
+
+\end{document}
+

@@ -1,0 +1,77 @@
+
+%
+%
+% Module: lms_theory_tutorial
+%
+% Author: Michael Kramer
+%
+% Reference: S. Haykin, Adaptive Filter Theory.  Prentice Hall, 3rd ed.,
+% 1996.
+%
+%
+
+Figure \ref{fig: sys_id} shows a block diagram
+for the use of adaptive filtering for system
+identification.  The objective of the system
+is to adapt an FIR filter (AFIR) to match as closely
+as possible the response of an unknown filter, $H?$.
+Both the unknown system and thh adapting filter
+are fed with the same input, and each have
+respective outputs, $y(n)$ (also referred to as the
+desired signal) and $\hat{y}(n)$.
+
+\begin{figure}[htb]\centerline  {
+\epsffile{sys_id.eps}  }
+\caption{System identification block diagram.}
+\label{fig: sys_id}
+\end{figure}
+
+\paragraph{Gradient Decent Adaptation:}
+The FIR filter is adapted using the least mean-square algorithm.
+First the error signal is computed, $e(n) = y(n) - \hat{y}(n)$,
+which provides a measure of how far our FIR filter is from
+the unknown system output.
+The coefficient update relation is a function of this
+error signal squared and is given by
+\bea
+h_{new}(i) & = & h_{old}(i) + \frac{\mu}{2} \left( -\frac{\partial}{\partial
+h(i)}
+| e | ^2 \right)
+\eea
+
+The term inside the parenthesis represents the derivative, or gradient,
+of the squared-error with respect to the $i'th$ coefficient, and
+the $\mu$ term represents a step-size, or how much gradient
+information is used to update each coefficient.
+After repeatedly adjusting each coefficient in the direction
+opposite to the gradient of the error, the adaptive filter
+should converge; that is, the difference between the
+unknown and adaptive systems should get smaller and smaller.
+
+To express the gradient decent coefficient update equation
+in a more usable manner, we can rewrite the derivative of the
+squared-error term as
+\bea
+\frac{\partial}{\partial h(i)} |e|^2 & = &
+2 \left( \frac{\partial}{\partial h(i)} e \right) e \nonumber \\
+& = & 2 \left( \frac{\partial}{\partial h(i)} \left[
+y - \hat{y} \right] \right) e \nonumber \\
+& = & 2  \left( \frac{\partial}{\partial h(i)} \left[
+y - \sum_{i=0}^{N-1} h(i) x(n-i) \right] \right) e \nonumber \\
+& = & 2 \left( - x(n-i) \right) e
+\eea
+which in turn gives us the final LMS coefficient update,
+\bea
+h_{new}(i) & = & h_{old}(i) + \mu \: e \: x(n-i)
+\label{eq: lms_update}
+\eea
+The $\mu$ term, or step-size, directly
+affects how quickly the adaptive filter will converge toward
+the unknown system.  If $\mu$ is very small, then the coefficients
+are not altered by a significant amount at each update.  With
+a large step-size, more gradient information is included in
+each update; however, when the step-size is too large the
+coefficients may be changed too much and the filter will
+not converge.
+
+

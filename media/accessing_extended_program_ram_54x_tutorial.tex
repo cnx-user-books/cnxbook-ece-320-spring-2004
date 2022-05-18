@@ -1,0 +1,37 @@
+
+%
+%
+% Module: accessing_extended_program_ram_54x_tutorial
+%
+% Author: Daniel Sachs
+%
+%
+
+The TMS320C549 DSP includes accumulator-addressed program memory read
+and write instructions: \verb+readprog+ and \verb+writprog+. These allow the
+processor to read or write from data memory to an arbitrary location
+in program memory. Data memory is addressed using a standard memory
+reference; program memory is addressed using the contents of the
+accumulator A.
+
+For instance, the following code fragment loads the value contained
+in memory location 023456h into the location 0064h in data memory
+using the \verb+readprog+ opcode:
+
+\setlength{\baselineskip}{0.4cm}
+\listinginput{1}{readprog_example.asm}
+\setlength{\baselineskip}{0.5cm}
+
+The \verb+writprog+ opcode can be used similary to write into extended program
+RAM:
+
+\setlength{\baselineskip}{0.4cm}
+\listinginput{1}{writprog_example.asm}
+\setlength{\baselineskip}{0.5cm}
+
+Note that Code Composer will not show you or allow you to change the
+contents of the extended program
+RAM on the memory-dump or disassembly screen, though you can or change it
+indirectly by watching the effects of the \verb+readprog+ and \verb+writprog+
+opcodes in data memory.
+

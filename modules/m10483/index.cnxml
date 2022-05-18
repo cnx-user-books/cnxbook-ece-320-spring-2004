@@ -1,0 +1,141 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  
+  <title>Audio Effects: Real-Time Control with the Serial Port</title>
+  <metadata>
+  <md:content-id>m10483</md:content-id><md:title>Audio Effects: Real-Time Control with the Serial Port</md:title>
+  <md:abstract>You will implement a feedback-echo effect and adjust its parameters in real time with a MATLAB graphical user interface.</md:abstract>
+  <md:uuid>05276a50-367c-4715-ab0a-6c920f788363</md:uuid>
+</metadata>
+
+<content>
+    <section id="sec5">
+      <title>Implementation</title>
+      <para id="para15">
+	For this exercise, you will extend the system from <link document="m10480">Audio Effects: Using External Memory</link>
+	to generate a feedback-echo effect. You will then extend this
+	echo effect to use the serial port on the DSP EVM. The serial
+	interface will receive data from a MATLAB GUI that allows the
+	two system gains and the echo delay to be changed using
+	on-screen sliders.
+      </para>
+      <section id="subsec2">
+	<title>Feedback system implementation</title>
+	<figure id="fig1">
+	  <media id="id8648873" alt="">
+            <image src="../../media/system.png" mime-type="image/png"/>
+            <image for="pdf" src="../../media/system.eps" mime-type="application/postscript"/>
+          </media>
+	  <caption>Feedback System with Test Points</caption>
+	</figure>
+	<para id="para17">
+	  First, modify code from <link document="m10480">Audio
+	  Effects: Using External Memory</link> to create the
+	  feedback-echo system shown in <link target-id="fig1"/>. A
+	  one-tap feedback-echo is a simple audio effect that sounds
+	  remarkably good.  You will use both channels of input by
+	  summing the two inputs so that either or both may be used as
+	  an input to the system. Also, send several test signals to
+	  the six-channel board's D/A converters:
+	</para>
+	<list id="list3">
+	  <item>The summed input signal</item>
+	  <item>The input signal after gain stage 
+	    <m:math>
+	      <m:ci><m:msub>
+		  <m:mi>G</m:mi>
+		  <m:mn>1</m:mn>
+		</m:msub></m:ci>
+	    </m:math>
+	  </item>
+	  <item>The data going into the long delay</item>
+	  <item>The data coming out of the delay</item>
+	</list>
+	<para id="para18">
+	  You will also need to set both the
+	  input gain
+	  <m:math>
+	    <m:ci><m:msub>
+		<m:mi>G</m:mi>
+		<m:mn>0</m:mn>
+	      </m:msub></m:ci>
+	  </m:math> and the feedback gain
+	  <m:math>
+	    <m:ci><m:msub>
+		<m:mi>G</m:mi>
+		<m:mn>1</m:mn>
+	      </m:msub></m:ci>
+	  </m:math>
+	  to prevent overflow. 
+	</para>
+	<para id="para19">
+	  As you implement this code, ensure that the delay
+	  <code>n</code> and the gain values
+	  <m:math>
+	    <m:ci><m:msub>
+		<m:mi>G</m:mi>
+		<m:mn>1</m:mn>
+	      </m:msub></m:ci> 
+	  </m:math> and
+	  <m:math>
+	    <m:ci><m:msub> 
+		<m:mi>G</m:mi> 
+		<m:mn>2</m:mn>
+	      </m:msub></m:ci> 
+	  </m:math> are stored in memory and can be easily changed
+	  using the debugger. If you do this, it will be easier to
+	  extend your code to accept its parameters from MATLAB in
+	  <link target-id="subsec3">MATLAB Interface
+	  Implementation</link>.
+	</para>
+	<para id="para20">
+	  To test your echo, connect a CD player or microphone to the
+	  input of the DSP EVM, and connect the output of the DSP EVM
+	  to a loudspeaker.  Verify that an input signal echoes
+	  multiple times in the output and that the spacing between
+	  echoes matches the delay length you have chosen.
+	</para>
+
+      </section>
+      <section id="subsec3">
+	<title>MATLAB interface implementation</title>
+	<para id="para21">
+	  After studying the MATLAB interface outlined at the end of <link document="m12062">Using the Serial Port with a MATLAB GUI</link>, write MATLAB code
+	  to send commands to the serial interface based on three
+	  sliders: two gain sliders (for
+	  <m:math>
+	    <m:ci><m:msub>
+		<m:mi>G</m:mi>
+		<m:mn>1</m:mn>
+	      </m:msub></m:ci> 
+	  </m:math> and
+	  <m:math>
+	    <m:ci><m:msub>
+		<m:mi>G</m:mi>
+		<m:mn>2</m:mn>
+	      </m:msub></m:ci> 
+	  </m:math>) and one delay slider (for <code>n</code>). Then
+	  modify your code to accept those commands and change the
+	  values for
+	  <m:math>
+	    <m:ci><m:msub>
+		<m:mi>G</m:mi>
+		<m:mn>1</m:mn>
+	      </m:msub></m:ci> 
+	  </m:math>,
+	  <m:math>
+	    <m:ci><m:msub>
+		<m:mi>G</m:mi>
+		<m:mn>2</m:mn>
+	      </m:msub></m:ci> 
+	  </m:math> and <code>n</code>. Make sure that <code>n</code>
+	  can be set to values spanning the full range of 0 to
+	  131,072, although it is not necessary that every number in
+	  that range be represented.
+
+	</para>
+      </section>
+    </section>
+
+  </content>
+  
+</document>

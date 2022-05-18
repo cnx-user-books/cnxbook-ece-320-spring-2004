@@ -1,0 +1,149 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml">
+  
+  <title>FIR Filtering: Basic Assembly Exercise for TI TMS320C54x</title>
+
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>42570b84-9dad-4402-bd43-a673e109c5a3</md:uuid>
+</metadata>
+
+
+
+  
+  <content>
+    <section id="sec1">
+      <title>Assembly Exercise</title>
+      <para id="p1">
+	Analyze the following lines of code.  Refer to <link document="m10808">Two's Complement and Fractional Arithmetic
+	for 16-bit Processors</link>, <link document="m10806">Addressing Modes for TI TMS320C54x</link>,
+	and the <cite url="http://www-s.ti.com/sc/psheets/spru172c/spru172c.pdf"><cite-title>Mnemonic
+	Instruction Set</cite-title></cite> manual for help.
+      </para>
+      <code display="block" id="idp655824">
+	
+	1  FIR_len .set    3
+	2
+	3  ; Assume: 
+	4  ;   BK = FIR_len
+	5  ;   AR0 = 1
+	6  ;   AR2 = 1000h
+	7  ;   AR3 = 1004h
+	8  ;
+	9  ;   FRCT = 1
+	10
+	11      stl     A,*AR3+%
+	12      rptz    A,(FIR_len-1)
+	13      mac     *AR2+0%,*AR3+0%,A
+	
+      </code>
+      <para id="p2">
+	Anything following a "<code>;</code>" is considered a comment.
+	In this case, the comments indicate the contents of the
+	auxiliary registers, the <code>BK</code> register, and the address registers before the execution of
+	the first instruction, <code>stl</code>.  
+        The line <code>FIR_len .set 3</code> defines the name FIR_len as equal to 3. The <code>BK</code> register contains the length of the 
+        circular buffer we want to use.  The <code>%</code> modifies the increment operator <code>+</code> so that it
+        behaves as a circular buffer.  This means that the address registers will be incremented until the 
+        (memory-address mod value-in-BK) = 0. When the increment operator <code>+</code> is followed by a <code>0</code>,
+        it increments by the value specified in register <code>AR0</code>. 
+    </para>
+      <para id="p2a">
+        Note that any number
+	followed by an "<code>h</code>" or preceded with a
+	<code>0x</code> represents a <term>hexadecimal</term> value.
+      </para>
+      <example id="example1">
+	<para id="p2b">
+	  1000h and 0x1000 both refer to the decimal number 4096.
+	</para>
+      </example>
+      <para id="p3">
+	Assume that the data memory is initialized as follows starting
+	at location <code>1000h</code>.
+      </para>
+      <figure id="tab1fig">
+	<media id="idm6643056" alt=""><image src="../../media/reg1.png" mime-type="image/png"/></media>
+	<caption>Data Memory Assignment (before execution)</caption> 
+      </figure>
+      <para id="p3b">
+	After familiarizing yourself with the <code>stl</code>,
+	<code>rptz</code>, and <code>mac</code> instructions, step
+	through each line of code and record the values of the
+	accumulator <code>A</code> and auxiliary registers
+	<code>AR2</code> and <code>AR3</code> in the spaces provided
+	in <link target-id="table2fig"/>.  Additionally, record the value
+	of the memory contents after all three instructions have been
+	"executed" in the blank data memory table provided in <link target-id="table3fig"/>.
+      </para>
+      <table frame="all" id="table2fig" summary="">
+	  <tgroup cols="4">
+	    <thead>
+	      <row>
+		<entry>A</entry>
+		<entry>AR2</entry>
+		<entry>AR3</entry>
+		<entry/>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><code>00 0000 8000h</code></entry>
+		<entry><code>1000h</code></entry>
+		<entry><code>1004h</code></entry>
+		<entry>at start of code</entry>
+	      </row>
+	      <row>
+		<entry/>
+		<entry/>
+		<entry/>
+		<entry>after <code>stl</code> instruction</entry>
+	      </row>
+	      <row>
+		<entry/>
+		<entry/>
+		<entry/>
+		<entry>after <code>rptz</code> instruction</entry>
+	      </row>
+	      <row>
+		<entry/>
+		<entry/>
+		<entry/>
+		<entry>after first <code>mac</code> instruction</entry>
+	      </row>
+	      <row>
+		<entry/>
+		<entry/>
+		<entry/>
+		<entry>
+		  after second <code>mac</code> instruction
+		</entry>
+	      </row>
+	      <row>
+		<entry/>
+		<entry/>
+		<entry/>
+		<entry>after third <code>mac</code> instruction</entry>
+	      </row>
+	    </tbody>
+	  </tgroup>
+	<caption>Execution Results</caption></table>
+      <para id="p4">
+	When working through the exercise, take into account that the
+	accumulator <code>A</code> is a 40-bit register, and that the
+	multiplier is in the <term>fractional arithmetic mode</term>.
+	In this mode, integers on the DSP are interpreted as
+	fractions, and the multiplier will treat them accordingly.
+	This is done by shifting the result of the integer multiplier
+	in the ALU left one bit. (All the arithmetic is fractional in these examples.)  
+        Multiplies performed by the ALU
+	(via the <code>mac</code> instruction) produce a result that
+	is twice what you would expect if you just multiplied the two
+	integers together.  DSP numerical representation and
+	arithmetic are described further in <link document="m10808">Two's Complement and Fractional Arithmetic
+	for 16-bit Processors</link>.
+      </para>
+      <figure id="table3fig">
+	<media id="idm5500848" alt=""><image src="../../media/reg2.png" mime-type="image/png"/></media> 
+	<caption>Data Memory Assignment (after execution)</caption>
+      </figure>
+    </section>
+  </content>
+</document>

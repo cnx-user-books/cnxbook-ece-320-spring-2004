@@ -1,0 +1,161 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  
+  <title>Lab 2: Prelab (Part 1)</title>
+  <metadata>
+  <md:content-id>m10620</md:content-id><md:title>Lab 2: Prelab (Part 1)</md:title>
+  <md:abstract>You will work through an example problem that explores the effects of sample-rate compression and expansion on the spectrum of a signal.</md:abstract>
+  <md:uuid>77ef05af-c7d1-4803-90d4-2c5c8e4d3a8b</md:uuid>
+</metadata>
+
+<content>
+    <section id="sec2a">
+      <title>Multirate Theory Exercise</title>
+      <para id="p4">
+	Consider a sampled signal with the DTFT 
+	<m:math>
+	  <m:apply>
+	    <m:ci type="fn">X</m:ci>
+	    <m:ci>ω</m:ci>
+	  </m:apply>
+	</m:math>
+	shown in <link target-id="fig2"/>.
+      </para>
+
+      <figure id="fig2">
+	<media id="id1164172080288" alt="">
+          <image src="../../media/prelab_input.png" mime-type="image/png"/>
+          <image for="pdf" src="../../media/prelab_input.eps" mime-type="application/postscript"/>
+        </media>
+	<caption>DTFT of the input signal.</caption>
+      </figure>
+
+      <para id="p5">
+	Assuming 
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:ci>U</m:ci>
+	    <m:ci>D</m:ci>
+	    <m:cn>3</m:cn>
+	  </m:apply>
+	</m:math>, use the relations between the DTFT of a signal
+	before and after sample-rate compression and expansion
+	(<link target-id="eqn1"/> and <link target-id="eqn2"/>) to sketch
+	the DTFT response of the signal as it passes through the
+	multirate system of <link target-id="fig3"/> (without any
+	filtering).  Include both the intermediate response
+	<m:math>
+	  <m:apply>
+	    <m:ci type="fn">W</m:ci>
+	    <m:ci>ω</m:ci>
+	  </m:apply>
+	</m:math> and the final response
+	<m:math>
+	  <m:apply>
+	    <m:ci type="fn">Y</m:ci>
+	    <m:ci>ω</m:ci>
+	  </m:apply>
+        </m:math>.  It is important to be aware that the translation
+        from digital frequency 
+        <m:math>
+          <m:ci>ω</m:ci>
+        </m:math> to analog frequency depends on the sampling rate.
+        Therefore, the conversion is different for 
+        <m:math>
+          <m:apply>
+            <m:ci type="fn">X</m:ci>
+            <m:ci>ω</m:ci>
+          </m:apply>
+        </m:math> and
+        <m:math>
+          <m:apply>
+            <m:ci type="fn">W</m:ci>
+            <m:ci>ω</m:ci>
+          </m:apply>
+        </m:math>.
+      </para>
+      
+      <equation id="eqn1">
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:apply>
+	      <m:ci type="fn">W</m:ci>
+	      <m:ci>ω</m:ci>
+	    </m:apply>
+	    <m:apply>
+	      <m:times/>
+	      <m:apply>
+		<m:divide/>
+		<m:cn>1</m:cn>
+		<m:ci>D</m:ci>
+	      </m:apply>
+	      <m:apply>
+		<m:sum/>
+		<m:bvar>
+		  <m:ci>k</m:ci>
+		</m:bvar>
+		<m:lowlimit>
+		  <m:cn>0</m:cn>
+		</m:lowlimit>
+		<m:uplimit>
+		  <m:apply>
+		    <m:minus/>
+		    <m:ci>D</m:ci>
+		    <m:cn>1</m:cn>
+		  </m:apply>
+		</m:uplimit>
+		<m:apply>
+		  <m:ci type="fn">X</m:ci>
+		  <m:apply>
+		    <m:divide/>
+		    <m:apply>
+		      <m:plus/>
+		      <m:ci>ω</m:ci>
+		      <m:apply>
+			<m:times/>
+			<m:cn>2</m:cn>
+			<m:pi/>
+			<m:ci>k</m:ci>
+		      </m:apply>
+		    </m:apply>
+		    <m:ci>D</m:ci>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:apply>
+	  </m:apply>
+	</m:math>
+      </equation>
+
+      <equation id="eqn2">
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:apply>
+	      <m:ci type="fn">Y</m:ci>
+	      <m:ci>ω</m:ci>
+	    </m:apply>
+	    <m:apply>
+	      <m:ci type="fn">W</m:ci>
+	      <m:apply>
+		<m:times/>
+		<m:ci>U</m:ci>
+		<m:ci>ω</m:ci>
+	      </m:apply>
+	    </m:apply>
+	  </m:apply>
+	</m:math>
+      </equation>
+
+      <figure id="fig3">
+	<media id="id1164164911375" alt="">
+          <image src="../../media/prelab_sys.png" mime-type="image/png"/>
+          <image for="pdf" src="../../media/prelab_sys.eps" mime-type="application/postscript"/>
+        </media>
+	<caption>Multirate System</caption>
+      </figure>
+    </section>
+
+  </content>
+</document>

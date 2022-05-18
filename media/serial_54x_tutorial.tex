@@ -1,0 +1,65 @@
+%AUTHOR: Daniel Sachs
+The core file also supports the serial port installed on the
+DSP320C549 DSP. The serial port on the EVM is attached to COM2 on
+the PC.  Before jumping to your code, the core file initializes
+the EVM's serial port to 38,400 bits per second with no parity, 1 stop bit
+and 8 data bits. It then accepts characters received from the PC by
+the UART (Universal Asynchonous Receiver/Transmitter) and buffers them
+in memory until your code retrieves them. It also can accept a block of
+bytes to transmit and send them to the UART in sequence.
+
+Two macros are used to control the serial port: \verb+READSER+ and
+\verb+WRITSER+.  Both accept one parameter. \verb+READSER <n>+ reads up
+to \verb+<n>+ characters from the serial input buffer (the data coming
+from the PC), and places them in memory starting at *AR3. (AR3 is left
+pointing one past the last memory location written.) The actual number
+of characters read is left in AR1. If AR1 is zero, then no characters
+were available in the input buffer.
+
+\verb+WRITSER <n>+ adds \verb+<n>+ characters starting at *AR3 to the
+serial output buffer - in other words, it queues them to be sent to the
+PC. AR3 is left pointing one location after the last memory location read.
+
+Note that READSER and WRITSER modify registers AR0, AR1, AR2, AR3, and
+BK as well as the flag TC. Be sure you restore these registers after
+calling \verb+READSER+ and \verb+WRITSER+ if you need them later in
+your code.
+
+Note also that the core file allows up to 126 characters to
+be stored in the input and output buffers. No checks to protect against
+buffer overflows are made, so do not allow the input and output buffers
+to overflow. (The length of the buffers can be changed by changing
+\verb+ser_rxlen+ and \verb+ser_txlen+ values in the \verb+core.asm+
+file.) The buffers are 127 characters long; however, the code
+cannot distinguish between a completely-full and completely-empty
+buffer. Therefore, only 126 characters can be stored in the buffers.
+
+% add buffer-query macros?
+
+It is easy to check if the input or output buffers in memory are
+empty. The input buffer can be checked by comparing the values stored in
+the memory locations \verb+srx_head+ and \verb+srx_tail+; if both memory
+locations hold the same value, the input buffer is empty. Likewise, the
+output buffer can be checked by comparing the values stored in memory
+locations \verb+stx_head+ and \verb+stx_tail+. The number of characters in
+the buffer can be computed by subtracting the head pointer from the tail
+pointer; add the length of the buffer (normally 127) if the resulting
+distance is negative.
+
+The following example shows the minimal amount of code necessary to
+echo received data back through the serial port. It has been placed in
+\verb+V:\54x\dsplib\+ as \verb+ser_echo.asm+.
+
+\setlength{\baselineskip}{0.4cm}
+\listinginput{1}{ser_echo.asm}
+\setlength{\baselineskip}{0.5cm}
+
+On Line 8, we tell \verb+READSER+ to receive into the location \verb+hold+
+by setting AR3 to point at it. On Line 9, we call \verb+READSER 1+ to
+read one serial byte into \verb+hold+; the byte is placed in the low-order
+bits of the word and the high-order bits are zeroed. If a byte was read,
+AR1 will be set to 1. AR1 is checked in Line 12; Line 13 branches back to
+the top if no byte was read. Otherwise, we tell reset AR3 to \verb+hold+
+(since \verb+READSER+ moved it), then call \verb+WRITSER+ to send the
+word we received on Line 16. On Line 18, we branch back to the start to
+receive another character.

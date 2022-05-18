@@ -1,0 +1,31 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml">
+  <title>Video Processing Manuals</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>eb644dfc-e3fa-4cb3-9969-3c3d3b35c487</md:uuid>
+</metadata>
+
+  <content>
+    <section id="main">
+      <title>Essential documentation for the 6000 series TI DSP</title>
+
+      <para id="para1">
+        The following documentation will certainly prove useful:
+
+        <list id="doc">
+
+          <item>The <link url="http://www-s.ti.com/sc/psheets/spru495a/spru495a.pdf">IDK
+          Programmer's Guide</link></item>
+
+          <item>The <link url="http://www-s.ti.com/sc/psheets/spru494a/spru494a.pdf">IDK
+          User's Guide</link></item>
+
+          <item>The <link url="http://www-s.ti.com/sc/psheets/spru499/spru499.pdf">IDK
+          Video Device Drivers User's Guide</link></item>
+        </list>
+
+        <note type="Note" id="idp264368"><label>Note</label>Other manuals may be found on TI's <link url="http://www.ti.com">website</link> by searching for
+        TMS320C6000 IDK</note>
+      </para>
+    </section>
+  </content>
+  
+</document>

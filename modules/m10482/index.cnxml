@@ -1,0 +1,1453 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml" xmlns:bib="http://bibtexml.sf.net/">
+
+  <title>Speech Processing: Theory of LPC Analysis and Synthesis</title>
+  <metadata>
+  <md:content-id>m10482</md:content-id><md:title>Speech Processing: Theory of LPC Analysis and Synthesis</md:title>
+  <md:abstract>Speech analysis and synthesis with Linear Predictive Coding (LPC) exploit the predictable nature of speech signals.  Cross-correlation, autocorrelation, and autocovariance provide the mathematical tools to determine this predictability.  If we know the autocorrelation of the speech sequence, we can use the Levinson-Durbin algorithm to find an efficient solution to the least mean-square modeling problem and use the solution to compress or resynthesize the speech.</md:abstract>
+  <md:uuid>c21fda43-6509-4239-9251-e609302d2861</md:uuid>
+</metadata>
+
+<content>
+
+    <section id="section1">
+      <title>Introduction</title>
+
+      <para id="para1">
+	<term>Linear predictive coding</term> (<term>LPC</term>) is a
+	popular technique for speech compression and speech synthesis.
+	The theoretical foundations of both are described below.
+      </para>
+
+      <section id="subsection1">
+        <title>Correlation coefficients</title>
+
+        <para id="para2">
+	  Correlation, a measure of similarity between two signals, is
+	  frequently used in the analysis of speech and other signals.
+	  The cross-correlation between two discrete-time signals
+          <m:math>
+            <m:apply>
+              <m:ci type="fn" class="discrete">x</m:ci>
+              <m:ci>n</m:ci>
+            </m:apply>
+          </m:math> and
+          <m:math>
+            <m:apply>
+              <m:ci type="fn" class="discrete">y</m:ci>
+              <m:ci>n</m:ci>
+            </m:apply>
+          </m:math> is defined as
+          <equation id="eq1">
+            <m:math>
+              <m:apply>
+                <m:eq/>
+                <m:apply>
+		  <m:ci type="fn" class="discrete">
+		    <m:msub>
+		      <m:mi>r</m:mi>
+		      <m:mrow>
+			<m:mi>x</m:mi>
+			<m:mi>y</m:mi>
+		      </m:mrow>
+		    </m:msub>
+                  </m:ci>
+                  <m:ci>l</m:ci>
+                </m:apply>
+                <m:apply>
+                  <m:sum/>
+                  <m:bvar>
+                    <m:ci>n</m:ci>
+                  </m:bvar>
+                  <m:lowlimit>
+                    <m:apply>
+                      <m:minus/>
+                      <m:infinity/>
+                    </m:apply>
+                  </m:lowlimit>
+                  <m:uplimit>
+                    <m:infinity/>
+                  </m:uplimit>
+                  <m:apply>
+                    <m:times/>
+                    <m:apply>
+                      <m:ci type="fn" class="discrete">x</m:ci>
+                      <m:ci>n</m:ci>
+                    </m:apply>
+                    <m:apply>
+                      <m:ci type="fn" class="discrete">y</m:ci>
+                      <m:apply>
+                        <m:minus/>
+                        <m:ci>n</m:ci>
+                        <m:ci>l</m:ci>
+                      </m:apply>
+                    </m:apply>
+                  </m:apply>
+                </m:apply>
+              </m:apply>
+            </m:math>
+          </equation>
+	  where 
+	  <m:math>
+	    <m:ci>n</m:ci>
+	  </m:math> is the sample index, and 
+	  <m:math>
+	    <m:ci>l</m:ci>
+	  </m:math> is the lag or time shift between the two signals
+	  <cite target-id="reference1"><cite-title>Proakis and Manolakis</cite-title></cite>
+	  (<cite><cite-title>pg. 120</cite-title></cite>).  Since speech signals are not
+	  stationary, we are typically interested in the similarities
+	  between signals only over a short time duration
+	  (<m:math>
+	    <m:apply>
+	      <m:lt/>
+	      <m:cn>30</m:cn>
+	    </m:apply>
+	  </m:math> ms).  In this case, the cross-correlation is
+	  computed only over a window of time samples and for only a
+	  few time delays
+          <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci>l</m:ci>
+	      <m:set>
+                <m:cn>0</m:cn>
+                <m:cn>1</m:cn>
+                <m:ci>…</m:ci>
+                <m:ci>P</m:ci>
+	      </m:set>
+	    </m:apply>
+          </m:math>. 
+	</para>
+        <para id="para2a">
+
+	Now consider the autocorrelation sequence
+	  <m:math>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">
+		<m:msub>
+		  <m:mi>r</m:mi>
+		  <m:mrow>
+		    <m:mi>s</m:mi>
+		    <m:mi>s</m:mi>
+		  </m:mrow>
+		</m:msub>
+	      </m:ci>
+	      <m:ci>l</m:ci>
+	    </m:apply>
+	  </m:math>, which describes the redundancy in the signal
+
+	  <m:math>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">s</m:ci>
+	      <m:ci>n</m:ci>
+	    </m:apply>
+	  </m:math>.
+
+          <equation id="eq2">
+            <m:math>
+              <m:apply>
+                <m:eq/>
+                <m:apply>
+		  <m:ci type="fn" class="discrete">
+		    <m:msub>
+		      <m:mi>r</m:mi>
+		      <m:mrow>
+			<m:mi>s</m:mi>
+			<m:mi>s</m:mi>
+		      </m:mrow>
+		    </m:msub>
+                  </m:ci>
+                  <m:ci>l</m:ci>
+                </m:apply>
+                <m:apply>
+		  <m:apply>
+                    <m:times/>
+		    <m:apply>
+		      <m:divide/>
+		      <m:cn>l</m:cn>
+		      <m:ci>N</m:ci>
+		    </m:apply>
+		    <m:apply>
+		      <m:sum/>
+		      <m:bvar>
+			<m:ci>n</m:ci>
+		      </m:bvar>
+		      <m:lowlimit>
+			<m:cn>0</m:cn>
+		      </m:lowlimit>
+		      <m:uplimit>
+			<m:apply>
+			  <m:minus/>
+			  <m:ci>N</m:ci>
+			  <m:cn>1</m:cn>
+			</m:apply>
+		      </m:uplimit>
+		      <m:apply>
+			<m:times/>
+			<m:apply>
+			  <m:ci type="fn" class="discrete">s</m:ci>
+			  <m:ci>n</m:ci>
+			</m:apply>
+			<m:apply>
+			  <m:ci type="fn" class="discrete">s</m:ci>
+			  <m:apply>
+			    <m:minus/>
+			    <m:ci>n</m:ci>
+			    <m:ci>l</m:ci>
+			  </m:apply>
+			</m:apply>
+                      </m:apply>
+                    </m:apply>
+                  </m:apply>
+                </m:apply>
+              </m:apply>
+            </m:math>
+          </equation> where
+
+	  <m:math>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">s</m:ci>
+	      <m:ci>n</m:ci>
+	    </m:apply>
+	  </m:math>,
+
+          <m:math>
+	    <m:apply>
+	      <m:eq/>
+              <m:ci>n</m:ci>
+              <m:set>
+                <m:ci>-P</m:ci>
+		<m:apply>
+		  <m:plus/>
+		  <m:ci>-P</m:ci>
+		  <m:cn>1</m:cn>
+		</m:apply>
+                <m:ci>…</m:ci>
+		<m:apply>
+		  <m:minus/>
+		  <m:ci>N</m:ci>
+		  <m:cn>1</m:cn>
+		</m:apply>
+              </m:set>
+            </m:apply>
+          </m:math> are the known samples (see <link target-id="figure1"/>) and the
+	  <m:math>
+	    <m:apply>
+	      <m:divide/>
+	      <m:cn>1</m:cn>
+	      <m:ci>N</m:ci>
+	    </m:apply>
+	  </m:math> is a normalizing factor.
+	</para>
+
+	<figure id="figure1">
+	  <media id="id6840907" alt="">
+            <image src="../../media/correlation.png" mime-type="image/png"/>
+            <image for="pdf" src="../../media/correlation.eps" mime-type="application/postscript"/>
+          </media>
+	  <caption>
+	    Computing the autocorrelation coefficients
+	  </caption>
+	</figure>
+
+        <para id="para3">
+	  Another related method of measuring the redundancy in a
+	  signal is to compute its autocovariance
+
+
+          <equation id="eq3">
+            <m:math>
+              <m:apply>
+                <m:eq/>
+                <m:apply>
+		  <m:ci type="fn" class="discrete">
+		    <m:msub>
+		      <m:mi>r</m:mi>
+		      <m:mrow>
+			<m:mi>s</m:mi>
+			<m:mi>s</m:mi>
+		      </m:mrow>
+		    </m:msub>
+                  </m:ci>
+                  <m:ci>l</m:ci>
+                </m:apply>
+                <m:apply>
+		  <m:apply>
+                    <m:times/>
+		    <m:apply>
+		      <m:divide/>
+		      <m:cn>1</m:cn>
+		      <m:apply>
+			<m:minus/>
+			<m:ci>N</m:ci>
+			<m:cn>1</m:cn>
+		      </m:apply>
+		    </m:apply>
+		    <m:apply>
+		      <m:sum/>
+		      <m:bvar>
+			<m:ci>n</m:ci>
+		      </m:bvar>
+		      <m:lowlimit>
+			<m:ci>l</m:ci>
+		      </m:lowlimit>
+		      <m:uplimit>
+			<m:apply>
+			  <m:minus/>
+			  <m:ci>N</m:ci>
+			  <m:cn>1</m:cn>
+			</m:apply>
+		      </m:uplimit>
+		      <m:apply>
+			<m:times/>
+			<m:apply>
+			  <m:ci type="fn" class="discrete">s</m:ci>
+			  <m:ci>n</m:ci>
+			</m:apply>
+			<m:apply>
+			  <m:ci type="fn" class="discrete">s</m:ci>
+			  <m:apply>
+			    <m:minus/>
+			    <m:ci>n</m:ci>
+			    <m:ci>l</m:ci>
+			  </m:apply>
+			</m:apply>
+                      </m:apply>
+                    </m:apply>
+                  </m:apply>
+                </m:apply>
+              </m:apply>
+            </m:math>
+          </equation> where the summation is over 
+
+	  <m:math>
+	    <m:apply>
+	      <m:minus/>
+	      <m:ci>N</m:ci>
+	      <m:ci>l</m:ci>
+	    </m:apply>
+	  </m:math> products (the samples
+
+          <m:math>
+	    <m:set>
+              <m:apply>
+		<m:ci type="fn" class="discrete">s</m:ci>
+		<m:ci>-P</m:ci>
+              </m:apply>
+              <m:ci>…</m:ci>
+              <m:apply>
+		<m:ci type="fn" class="discrete">s</m:ci>
+		<m:cn>-1</m:cn>
+              </m:apply>
+	    </m:set>
+          </m:math> are ignored).
+	</para>
+      </section>
+
+
+      <section id="subsection2">
+        <title>Linear prediction model</title>
+
+	<para id="para4">
+	  <term>Linear prediction</term> is a good tool for analysis
+	  of speech signals.  Linear prediction models the human vocal
+	  tract as an <term>infinite impulse response</term>
+	  (<term>IIR</term>) system that produces the speech signal.
+	  For vowel sounds and other voiced regions of speech, which
+	  have a resonant structure and high degree of similarity over
+	  time shifts that are multiples of their pitch period, this
+	  modeling produces an efficient representation of the
+	  sound. <link target-id="figure2"/> shows how the resonant
+	  structure of a vowel could be captured by an IIR system.
+	</para>
+
+	<figure id="figure2">
+	  <media id="id8203635" alt="">
+            <image src="../../media/lpc_model.png" mime-type="image/png"/>
+            <image for="pdf" src="../../media/lpc_model.eps" mime-type="application/postscript"/>
+          </media>
+	  <caption>
+	    Linear Prediction (IIR) Model of Speech
+	  </caption>
+	</figure>
+
+        <para id="para5">
+	  The linear prediction problem can be stated as finding the
+	  coefficients
+	  <m:math>
+	    <m:ci>
+	      <m:msub>
+		<m:mi>a</m:mi>
+		<m:mi>k</m:mi>
+	      </m:msub>
+	    </m:ci>
+	  </m:math>
+	  which result in the best prediction (which minimizes
+	  mean-squared prediction error) of the speech sample
+	  <m:math>
+	    <m:apply>
+              <m:ci type="fn" class="discrete">s</m:ci>
+              <m:ci>n</m:ci>
+	    </m:apply>
+	  </m:math> in terms of the past samples 
+	  <m:math>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">s</m:ci>
+	      <m:apply>
+		<m:minus/>
+                <m:ci>n</m:ci>
+                <m:ci>k</m:ci>
+	      </m:apply>
+	    </m:apply>
+	  </m:math>,
+          <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci>k</m:ci>
+	      <m:set>
+                <m:cn>1</m:cn>
+                <m:ci>…</m:ci>
+                <m:ci>P</m:ci>
+	      </m:set>
+	    </m:apply>
+          </m:math>. The predicted sample 
+	  <m:math>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">
+		<m:mover>
+		  <m:mi>s</m:mi>
+		  <m:mo>^</m:mo>
+		</m:mover>
+	      </m:ci>
+	      <m:ci>n</m:ci>
+	    </m:apply>
+	  </m:math> is then given by <cite target-id="reference2"><cite-title>Rabiner
+	  and Juang</cite-title></cite>
+	 <equation id="eq4">
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:apply>
+		<m:ci type="fn" class="discrete">
+	          <m:mover>
+		    <m:mi>s</m:mi>
+		    <m:mo>^</m:mo>
+		  </m:mover>
+		</m:ci>
+		<m:ci>n</m:ci>
+	      </m:apply>
+	      <m:apply>
+		<m:sum/>
+		<m:bvar>
+		  <m:ci>k</m:ci>
+		</m:bvar>
+		<m:lowlimit>
+		  <m:cn>1</m:cn>
+		</m:lowlimit>
+		<m:uplimit>
+		  <m:ci>P</m:ci>
+		</m:uplimit>
+		<m:apply>
+		  <m:times/>
+		  <m:ci>
+		    <m:msub>
+		      <m:mi>a</m:mi>
+		      <m:mi>k</m:mi>
+		    </m:msub>
+		  </m:ci>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">s</m:ci>
+		    <m:apply>
+		      <m:minus/>
+		      <m:ci>n</m:ci>
+		      <m:ci>k</m:ci>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:apply>
+	  </m:math>
+         </equation> where 
+	  <m:math>
+	    <m:ci>P</m:ci>
+	  </m:math> is the number of past samples of 
+	  <m:math>
+	    <m:apply>
+              <m:ci type="fn" class="discrete">s</m:ci>
+              <m:ci>n</m:ci>
+	    </m:apply>
+	  </m:math> which we wish to examine. 
+	 </para> 
+        <para id="para5b">
+	  Next we derive the frequency response of the system
+	  in terms of the prediction coefficients
+	  <m:math>
+	    <m:ci>
+	      <m:msub>
+		<m:mi>a</m:mi>
+		<m:mi>k</m:mi>
+	      </m:msub>
+	    </m:ci>
+	  </m:math>. In <link target-id="eq4"/>, when the predicted
+	  sample equals the actual signal (<foreign>i.e.</foreign>,
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+              <m:apply>
+                <m:ci type="fn" class="discrete">
+		  <m:mover>
+		    <m:mi>s</m:mi>
+		    <m:mo>^</m:mo>
+		  </m:mover>
+                </m:ci>
+                <m:ci>n</m:ci>
+              </m:apply>
+              <m:apply>
+                <m:ci type="fn" class="discrete">s</m:ci>
+                <m:ci>n</m:ci>
+              </m:apply>
+	    </m:apply>
+	  </m:math>), we have
+
+	  <m:math display="block">
+	    <m:apply>
+	      <m:eq/>
+	      <m:apply>
+		<m:ci type="fn" class="discrete">s</m:ci>
+		<m:ci>n</m:ci>
+	      </m:apply>
+	      <m:apply>
+		<m:sum/>
+		<m:bvar>
+		  <m:ci>k</m:ci>
+		</m:bvar>
+		<m:lowlimit>
+		  <m:cn>1</m:cn>
+		</m:lowlimit>
+		<m:uplimit>
+		  <m:ci>P</m:ci>
+		</m:uplimit>
+		<m:apply>
+		  <m:times/>
+		  <m:ci>
+		    <m:msub>
+		      <m:mi>a</m:mi>
+		      <m:mi>k</m:mi>
+		    </m:msub>
+		  </m:ci>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">s</m:ci>
+		    <m:apply>
+		      <m:minus/>
+		      <m:ci>n</m:ci>
+		      <m:ci>k</m:ci>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:apply>
+	  </m:math>
+
+	  <m:math display="block">
+	    <m:apply>
+	      <m:eq/>
+	      <m:apply>
+		<m:ci type="fn">s</m:ci>
+		<m:ci>z</m:ci>
+	      </m:apply>
+	      <m:apply>
+		<m:sum/>
+		<m:bvar>
+		  <m:ci>k</m:ci>
+		</m:bvar>
+		<m:lowlimit>
+		  <m:cn>1</m:cn>
+		</m:lowlimit>
+		<m:uplimit>
+		  <m:ci>P</m:ci>
+		</m:uplimit>
+		<m:apply>
+		  <m:times/>
+		  <m:ci>
+		    <m:msub>
+		      <m:mi>a</m:mi>
+		      <m:mi>k</m:mi>
+		    </m:msub>
+		  </m:ci>
+		  <m:apply>
+		    <m:ci type="fn">s</m:ci>
+		    <m:ci>z</m:ci>
+		  </m:apply>
+		  <m:apply>
+		    <m:power/>
+		    <m:ci>z</m:ci>
+		    <m:apply>
+		      <m:minus/>
+		      <m:ci>k</m:ci>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:apply>
+	  </m:math>
+
+	  <equation id="eq5">
+            <m:math>
+              <m:apply>
+                <m:eq/>
+		<m:apply>
+		  <m:ci type="fn">s</m:ci>
+		  <m:ci>z</m:ci>
+		</m:apply>
+		<m:apply>
+		  <m:divide/>
+		  <m:cn>1</m:cn>
+		  <m:apply>
+		    <m:minus/>
+		    <m:cn>1</m:cn>
+		    <m:apply>
+		      <m:sum/>
+		      <m:bvar>
+			<m:ci>k</m:ci>
+		      </m:bvar>
+		      <m:lowlimit>
+			<m:cn>1</m:cn>
+		      </m:lowlimit>
+		      <m:uplimit>
+			<m:ci>P</m:ci>
+		      </m:uplimit>
+		      <m:apply>
+			<m:times/>
+			<m:ci>
+			  <m:msub>
+			    <m:mi>a</m:mi>
+			    <m:mi>k</m:mi>
+			  </m:msub>
+			</m:ci>
+			<m:apply>
+			  <m:power/>
+			  <m:ci>z</m:ci>
+			  <m:apply>
+			    <m:minus/>
+			    <m:ci>k</m:ci>
+			  </m:apply>
+			</m:apply>
+		      </m:apply>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:math>
+	  </equation> The optimal solution to this problem is <cite target-id="reference2"><cite-title>Rabiner and Juang</cite-title></cite>
+
+	  <m:math display="block">
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci type="matrix">a</m:ci>
+	      <m:matrix>
+		<m:matrixrow>
+	  	  <m:ci>
+		    <m:msub>
+                      <m:mi>a</m:mi>
+	              <m:mn>1</m:mn>
+		    </m:msub>
+		  </m:ci>
+	  	  <m:ci>
+       	            <m:msub>
+                      <m:mi>a</m:mi>
+	              <m:mn>2</m:mn>
+                    </m:msub>
+		  </m:ci>
+		  <m:ci>…</m:ci>
+	  	  <m:ci>
+  	            <m:msub>
+                      <m:mi>a</m:mi>
+	              <m:mi>P</m:mi>
+                    </m:msub>
+		  </m:ci>
+		</m:matrixrow>
+	      </m:matrix>
+	    </m:apply>
+	  </m:math>
+
+	  <m:math display="block">
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci type="matrix">r</m:ci>
+              <m:apply>
+		<m:transpose/>
+		<m:matrix>
+		  <m:matrixrow>
+                    <m:apply>
+                      <m:ci type="fn" class="discrete">
+                        <m:msub>
+                          <m:mi>r</m:mi>
+			  <m:mrow>
+			    <m:mi>s</m:mi>
+			    <m:mi>s</m:mi>
+			  </m:mrow>
+                        </m:msub>
+                      </m:ci>
+                      <m:cn>1</m:cn>
+                    </m:apply>
+                    <m:apply>
+                      <m:ci type="fn" class="discrete">
+                        <m:msub>
+                          <m:mi>r</m:mi>
+			  <m:mrow>
+			    <m:mi>s</m:mi>
+			    <m:mi>s</m:mi>
+			  </m:mrow>
+                        </m:msub>
+                      </m:ci>
+                      <m:cn>2</m:cn>
+                    </m:apply>
+		    <m:ci>…</m:ci>
+                    <m:apply>
+                      <m:ci type="fn" class="discrete">
+                        <m:msub>
+                          <m:mi>r</m:mi>
+			  <m:mrow>
+			    <m:mi>s</m:mi>
+			    <m:mi>s</m:mi>
+			  </m:mrow>
+                        </m:msub>
+                      </m:ci>
+                      <m:ci>P</m:ci>
+                    </m:apply>
+		  </m:matrixrow>
+		</m:matrix>
+	      </m:apply>
+	    </m:apply>
+	  </m:math>
+
+	  <m:math display="block">
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci type="matrix">R</m:ci>
+	      <m:matrix>
+		<m:matrixrow>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">
+		      <m:msub>
+			<m:mi>r</m:mi>
+			<m:mrow>
+			  <m:mi>s</m:mi>
+			  <m:mi>s</m:mi>
+			</m:mrow>
+		      </m:msub>
+		    </m:ci>
+		    <m:cn>0</m:cn>
+		  </m:apply>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">
+		      <m:msub>
+			<m:mi>r</m:mi>
+			<m:mrow>
+			  <m:mi>s</m:mi>
+			  <m:mi>s</m:mi>
+			</m:mrow>
+		      </m:msub>
+		    </m:ci>
+		    <m:cn>1</m:cn>
+		  </m:apply>
+		  <m:ci>…</m:ci>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">
+		      <m:msub>
+			<m:mi>r</m:mi>
+			<m:mrow>
+			  <m:mi>s</m:mi>
+			  <m:mi>s</m:mi>
+			</m:mrow>
+		      </m:msub>
+		    </m:ci>
+		    <m:apply>
+		      <m:minus/>
+		      <m:ci>P</m:ci>
+		      <m:cn>1</m:cn>
+		    </m:apply>
+		  </m:apply>
+		</m:matrixrow>
+		<m:matrixrow>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">
+		      <m:msub>
+			<m:mi>r</m:mi>
+			<m:mrow>
+			  <m:mi>s</m:mi>
+			  <m:mi>s</m:mi>
+			</m:mrow>
+		      </m:msub>
+		    </m:ci>
+		    <m:cn>1</m:cn>
+		  </m:apply>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">
+		      <m:msub>
+			<m:mi>r</m:mi>
+			<m:mrow>
+			  <m:mi>s</m:mi>
+			  <m:mi>s</m:mi>
+			</m:mrow>
+		      </m:msub>
+		    </m:ci>
+		    <m:cn>0</m:cn>
+		  </m:apply>
+		  <m:ci>…</m:ci>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">
+		      <m:msub>
+			<m:mi>r</m:mi>
+			<m:mrow>
+			  <m:mi>s</m:mi>
+			  <m:mi>s</m:mi>
+			</m:mrow>
+		      </m:msub>
+		    </m:ci>
+		    <m:apply>
+		      <m:minus/>
+		      <m:ci>P</m:ci>
+		      <m:cn>2</m:cn>
+		    </m:apply>
+		  </m:apply>
+		</m:matrixrow>
+		<m:matrixrow>
+		  <m:ci>⋮</m:ci>
+		  <m:ci>⋮</m:ci>
+		  <m:ci>⋮</m:ci>
+		  <m:ci>⋮</m:ci>
+		</m:matrixrow>
+		<m:matrixrow>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">
+		      <m:msub>
+			<m:mi>r</m:mi>
+			<m:mrow>
+			  <m:mi>s</m:mi>
+			  <m:mi>s</m:mi>
+			</m:mrow>
+		      </m:msub>
+		    </m:ci>
+		    <m:apply>
+		      <m:minus/>
+		      <m:ci>P</m:ci>
+		      <m:cn>1</m:cn>
+		    </m:apply>
+		  </m:apply>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">
+		      <m:msub>
+			<m:mi>r</m:mi>
+			<m:mrow>
+			  <m:mi>s</m:mi>
+			  <m:mi>s</m:mi>
+			</m:mrow>
+		      </m:msub>
+		    </m:ci>
+		    <m:apply>
+		      <m:minus/>
+		      <m:ci>P</m:ci>
+		      <m:cn>2</m:cn>
+		    </m:apply>
+		  </m:apply>
+		  <m:ci>…</m:ci>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">
+		      <m:msub>
+			<m:mi>r</m:mi>
+			<m:mrow>
+			  <m:mi>s</m:mi>
+			  <m:mi>s</m:mi>
+			</m:mrow>
+		      </m:msub>
+		    </m:ci>
+		    <m:cn>0</m:cn>
+		  </m:apply>
+		</m:matrixrow>
+	      </m:matrix>
+	    </m:apply>
+	  </m:math>
+
+
+	  <equation id="eq6">
+	    <m:math>
+	      <m:apply>
+		<m:eq/>
+		<m:ci type="matrix">a</m:ci>
+		<m:apply>
+		  <m:times/>
+		  <m:apply>
+		    <m:inverse/>
+		    <m:ci type="matrix">R</m:ci>
+		  </m:apply>
+		  <m:ci type="matrix">r</m:ci>
+		</m:apply>
+	      </m:apply>
+	    </m:math>
+	  </equation>
+	  
+	  Due to the Toeplitz property of the 
+	  <m:math>
+	    <m:ci type="matrix">R</m:ci> 
+	  </m:math> matrix (it is symmetric with equal diagonal
+	  elements), an efficient algorithm is available for computing
+	  <m:math>
+	    <m:ci type="matrix">a</m:ci> 
+	  </m:math> without the computational expense of finding
+	  <m:math> 
+	    <m:apply>
+	      <m:inverse/>
+	      <m:ci type="matrix">R</m:ci>
+	    </m:apply>
+	  </m:math>.  The <term>Levinson-Durbin algorithm</term> is an
+	  iterative method of computing the predictor coefficients
+	  <m:math>
+	    <m:ci type="matrix">a</m:ci> 
+	  </m:math> <cite target-id="reference2"><cite-title>Rabiner and Juang</cite-title></cite>
+	  (<cite><cite-title>p.115</cite-title></cite>).
+	</para>
+
+	<para id="para5point5">
+	  Initial Step:
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+              <m:ci>
+                <m:msub>
+	          <m:mi>E</m:mi>
+	          <m:mn>0</m:mn>
+	        </m:msub>
+	      </m:ci>
+	      <m:apply>
+                <m:ci type="fn" class="discrete">
+                  <m:msub>
+                    <m:mi>r</m:mi>
+		    <m:mrow>
+		      <m:mi>s</m:mi>
+		      <m:mi>s</m:mi>
+		    </m:mrow>
+                  </m:msub>
+                </m:ci>
+                <m:cn>0</m:cn>
+              </m:apply>
+	    </m:apply>
+	  </m:math>,
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci>i</m:ci>
+	      <m:cn>1</m:cn>
+	    </m:apply>
+	  </m:math>
+	</para>
+	<para id="para5point6">
+	  for
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci>i</m:ci>
+	      <m:cn>1</m:cn>
+	    </m:apply>
+	  </m:math>
+	  to 
+	  <m:math>
+	    <m:ci>P</m:ci>
+	  </m:math>. 
+	</para>
+	<para id="para5point7">
+	  <list id="list1" list-type="enumerated">
+	    <title>Steps</title>
+	    <item>
+	      <m:math>
+		<m:apply>
+		  <m:eq/>
+		  <m:ci>
+		    <m:msub>
+		      <m:mi>k</m:mi>
+		      <m:mi>i</m:mi>
+		    </m:msub>
+		  </m:ci>
+		  <m:apply>
+		    <m:times/>
+		    <m:apply>
+		      <m:divide/>
+		      <m:cn>1</m:cn>
+		      <m:ci>
+			<m:msub>
+			  <m:mi>E</m:mi>
+			  <m:mrow>
+			    <m:mi>i</m:mi>
+			    <m:mo>-</m:mo>
+			    <m:mn>1</m:mn>
+			  </m:mrow>
+			</m:msub>
+		      </m:ci>
+		    </m:apply>
+		    <m:apply>
+		      <m:minus/>
+		      <m:apply>
+			<m:ci type="fn" class="discrete">
+			  <m:msub>
+			    <m:mi>r</m:mi>
+			    <m:mrow>
+			      <m:mi>s</m:mi>
+			      <m:mi>s</m:mi>
+			    </m:mrow>
+			  </m:msub>
+			</m:ci>
+			<m:ci>i</m:ci>
+		      </m:apply>
+		      <m:apply>
+			<m:sum/>
+			<m:bvar>
+			  <m:ci>j</m:ci>
+			</m:bvar>
+			<m:lowlimit>
+			  <m:cn>1</m:cn>
+			</m:lowlimit>
+			<m:uplimit>
+			  <m:apply>
+			    <m:minus/>
+			    <m:ci>i</m:ci>
+			    <m:cn>1</m:cn>
+			  </m:apply>
+			</m:uplimit>
+			<m:apply>
+			  <m:times/>
+			  <m:apply>
+			    <m:ci>
+			      <m:msub>
+				<m:ci>α</m:ci>
+				<m:mrow>
+				  <m:ci>j</m:ci>
+				  <m:mo>,</m:mo>
+			 	  <m:mi>i</m:mi>
+				  <m:mo>-</m:mo>
+			 	  <m:mn>1</m:mn>
+				</m:mrow>
+			      </m:msub>
+			    </m:ci>
+			  </m:apply>
+			  <m:apply>
+			    <m:ci type="fn" class="discrete">
+			      <m:msub>
+				<m:mi>r</m:mi>
+				<m:mrow>
+				  <m:mi>s</m:mi>
+				  <m:mi>s</m:mi>
+				</m:mrow>
+			      </m:msub>
+			    </m:ci>
+			    <m:apply>
+				<m:abs/>
+			    <m:apply>
+			      <m:minus/>
+			      <m:ci>i</m:ci>
+			      <m:ci>j</m:ci>
+			    </m:apply>
+			    </m:apply>
+			  </m:apply>
+			</m:apply>
+		      </m:apply>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:math>
+	    </item>
+
+	    <item>
+	      <list id="sublist">
+		<item>
+		  <m:math>
+		    <m:apply>
+		      <m:eq/>
+		      <m:ci>
+			<m:msub>
+			  <m:ci>α</m:ci>
+			  <m:mrow>
+			    <m:ci>j</m:ci>
+			    <m:mo>,</m:mo>
+			    <m:ci>i</m:ci>
+			  </m:mrow>
+			</m:msub>
+		      </m:ci>
+		      <m:apply>
+			<m:minus/>
+			<m:ci>
+			  <m:msub>
+			    <m:ci>α</m:ci>
+				<m:mrow>
+				  <m:ci>j</m:ci>
+				  <m:mo>,</m:mo>
+			 	  <m:mi>i</m:mi>
+				  <m:mo>-</m:mo>
+			 	  <m:mn>1</m:mn>
+				</m:mrow>
+			  </m:msub>
+			</m:ci>
+			<m:apply>
+			  <m:times/>
+			  <m:ci>
+			    <m:msub>
+			      <m:mi>k</m:mi>
+			      <m:mi>i</m:mi>
+			    </m:msub>
+			  </m:ci>
+			  <m:ci>
+			    <m:msub>
+			      <m:ci>α</m:ci>
+			       <m:mrow>
+			   	<m:mi>i</m:mi>
+			  	<m:mo>-</m:mo>
+			  	<m:mn>j</m:mn>
+			  	<m:mo>,</m:mo>
+			   	<m:mi>i</m:mi>
+			    	<m:mo>-</m:mo>
+			    	<m:mn>1</m:mn>
+			      </m:mrow>
+			    </m:msub>
+			  </m:ci>
+			</m:apply>
+		      </m:apply>
+		    </m:apply>
+		  </m:math>
+		  <m:math>
+		    <m:apply>
+		      <m:eq/>
+		      <m:ci>j</m:ci>
+		      <m:set>
+			<m:cn>1</m:cn>
+			<m:ci>…</m:ci>
+			<m:apply>
+			  <m:minus/>
+			  <m:ci>i</m:ci>
+			  <m:cn>1</m:cn>
+			</m:apply>
+		      </m:set>
+		    </m:apply>
+		  </m:math>
+		</item>
+		<item>
+		  <m:math>
+		    <m:apply>
+		      <m:eq/>
+		      <m:ci>
+			<m:msub>
+			  <m:ci>α</m:ci>
+			  <m:mrow>
+			    <m:ci>i</m:ci>
+			    <m:mo>,</m:mo>
+			    <m:ci>i</m:ci>
+			  </m:mrow>
+			</m:msub>
+		      </m:ci>
+		      <m:ci>
+			<m:msub>
+			  <m:ci>k</m:ci>
+			  <m:ci>i</m:ci>
+			</m:msub>
+		      </m:ci>
+		    </m:apply>
+		  </m:math>
+		</item>
+	      </list>
+	    </item>
+
+	    <item>
+	      <m:math>
+		<m:apply>
+		  <m:eq/>
+		  <m:ci>
+		    <m:msub>
+		      <m:ci>E</m:ci>
+		      <m:ci>i</m:ci>
+		    </m:msub>
+		  </m:ci>
+		  <m:apply>
+		    <m:times/>
+		    <m:apply>
+		      <m:minus/>
+		      <m:cn>1</m:cn>
+		      <m:apply>
+			<m:power/>
+			<m:ci>
+			  <m:msub>
+			    <m:ci>k</m:ci>
+			    <m:ci>i</m:ci>
+			  </m:msub>
+			</m:ci>
+			<m:cn>2</m:cn>
+		      </m:apply>
+		    </m:apply>
+		    <m:ci>
+		      <m:msub>
+			<m:ci>E</m:ci>
+			<m:mrow>
+			  <m:mi>i</m:mi>
+			  <m:mo>-</m:mo>
+			  <m:mn>1</m:mn>
+			</m:mrow>
+		      </m:msub>
+		    </m:ci>
+		  </m:apply>
+		</m:apply>
+	      </m:math>
+
+	    </item>
+
+	  </list>
+	</para>
+      </section>
+
+
+      <section id="subsection3">
+        <title>LPC-based synthesis</title>
+
+	<para id="para6">
+	  It is possible to use the prediction coefficients to
+	  synthesize the original sound by applying
+	  <m:math>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">δ</m:ci>
+	      <m:ci>n</m:ci>
+	    </m:apply>
+	  </m:math>, the unit impulse, to the IIR system with lattice
+	  coefficients
+	  <m:math>
+	    <m:ci>
+	      <m:msub>
+		<m:mi>k</m:mi>
+		<m:mi>i</m:mi>
+	      </m:msub>
+	    </m:ci>
+	    <m:mo> , </m:mo>
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci>i</m:ci>
+	      <m:set>
+                <m:cn>1</m:cn>
+                <m:ci>…</m:ci>
+                <m:ci>P</m:ci>
+	      </m:set>
+	    </m:apply>
+          </m:math>
+
+	  as shown in <link target-id="figure3"/>.  Applying
+	  <m:math>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">δ</m:ci>
+	      <m:ci>n</m:ci>
+	    </m:apply>
+	  </m:math>
+	  to consecutive IIR systems (which represent consecutive
+	  speech segments) yields a longer segment of synthesized
+	  speech.
+	</para>
+
+	<para id="para7">
+	  In this application, lattice filters are used rather than
+	  direct-form filters since the lattice filter coefficients
+	  have magnitude less than one and, conveniently, are
+	  available directly as a result of the Levinson-Durbin
+	  algorithm.  If a direct-form implementation is desired
+	  instead, the 
+	  <m:math>
+	    <m:ci>α </m:ci>
+	  </m:math> coefficients must be factored into second-order
+	  stages with very small gains to yield a more stable
+	  implementation.
+	</para>
+
+	<figure id="figure3">
+	  <media id="id6260545" alt="">
+            <image src="../../media/lattice.png" mime-type="image/png"/>
+            <image for="pdf" src="../../media/lattice.eps" mime-type="application/postscript"/>
+          </media>
+	  <caption>
+	    IIR lattice filter implementation.
+	  </caption>
+	</figure>
+
+        <para id="para8">
+	  When each segment of speech is synthesized in this manner,
+	  two problems occur.  First, the synthesized speech is
+	  monotonous, containing no changes in pitch, because the
+	  <m:math>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">δ</m:ci>
+	      <m:ci>n</m:ci>
+	    </m:apply>
+	  </m:math>'s, which represent pulses of air from the vocal
+	  chords, occur with fixed periodicity equal to the analysis
+	  segment length; in normal speech, we vary the frequency of
+	  air pulses from our vocal chords to change pitch.  Second,
+	  the states of the lattice filter (<foreign>i.e.</foreign>,
+	  past samples stored in the delay boxes) are cleared at the
+	  beginning of each segment, causing discontinuity in the
+	  output.
+	</para>
+
+	<para id="para9">
+	  To estimate the pitch, we look at the autocorrelation coefficients of 
+	  each segment.  A large peak in the autocorrelation coefficient at 
+	  lag 
+	  <m:math>
+	    <m:apply>
+	      <m:neq/>
+	      <m:ci> l </m:ci>
+	      <m:cn> 0 </m:cn>
+	    </m:apply>
+	  </m:math> implies the speech segment is periodic (or, more
+	  often, approximately periodic) with period
+	  <m:math>
+	    <m:ci>l</m:ci>
+	  </m:math>.  In synthesizing these segments, we recreate the
+	  periodicity by using an impulse train as input and varying
+	  the delay between impulses according to the pitch period.
+	  If the speech segment does not have a large peak in the
+	  autocorrelation coefficients, then the segment is an
+	  unvoiced signal which has no periodicity.  Unvoiced segments
+	  such as consonants are best reconstructed by using noise
+	  instead of an impulse train as input.
+	</para>
+
+	<para id="para10">
+	  To reduce the discontinuity between segments, do not clear
+	  the states of the IIR model from one segment to the next.
+	  Instead, load the new set of reflection coefficients,
+	  <m:math>
+	    <m:ci>
+	      <m:msub>
+		<m:mi>k</m:mi>
+		<m:mi>i</m:mi>
+	      </m:msub>
+	    </m:ci>
+	  </m:math>, and continue with the lattice filter computation.
+	</para>
+
+      </section>
+     
+    </section>
+
+    <section id="section4">
+      <title>Additional Issues</title>
+
+      <para id="para18">
+	<list id="list2" list-type="bulleted">
+	  <item>Spanish vowels (m<emphasis>o</emphasis>p,
+	  <emphasis>a</emphasis>ce, <emphasis>ea</emphasis>sy,
+	  g<emphasis>o</emphasis>, b<emphasis>u</emphasis>t) are
+	  easier to recognize using LPC.</item> 
+
+	  <item>Error can be computed as
+
+	    <m:math>
+	      <m:apply>
+		<m:times/>
+		<m:apply>
+		  <m:transpose/>
+		  <m:ci type="vector">a</m:ci>
+		</m:apply>
+		<m:ci type="matrix">R</m:ci>
+		<m:ci type="vector">a</m:ci>
+	      </m:apply>
+	    </m:math>, where 
+	    <m:math>
+	      <m:ci type="matrix">R</m:ci>
+	    </m:math>
+	    is the autocovariance or autocorrelation matrix of a test
+	    segment and 
+	    <m:math>
+	      <m:ci type="vector">a</m:ci>
+	    </m:math> is the vector of prediction coefficients of a
+	    template segment.
+	  </item>
+
+	  <item>
+	    A pre-emphasis filter before LPC, emphasizing frequencies
+	    of interest in the recognition or synthesis, can improve
+	    performance.
+	  </item>
+	  
+	  <item>
+	    The pitch period for males
+	     (<m:math>
+	      <m:cn>80</m:cn>
+	    </m:math>-
+	    <m:math>
+	      <m:cn>150</m:cn>
+	    </m:math> kHz) is different from the pitch period for
+	    females.
+	  </item>
+	  
+	  <item>
+	    For voiced segments,
+
+	    <m:math>
+	      <m:apply>
+		<m:approx/>
+		<m:apply>
+		  <m:divide/>
+		  <m:apply>
+                    <m:ci type="fn" class="discrete">
+                      <m:msub>
+                        <m:mi>r</m:mi>
+                        <m:mrow>
+                          <m:mi>s</m:mi>
+                          <m:mi>s</m:mi>
+                        </m:mrow>
+                      </m:msub>
+                    </m:ci>
+                    <m:ci>T</m:ci>
+                  </m:apply>
+		  <m:apply>
+               	    <m:ci type="fn" class="discrete">
+                      <m:msub>
+                        <m:mi>r</m:mi>
+                        <m:mrow>
+                          <m:mi>s</m:mi> <m:mi>s</m:mi>
+                   	</m:mrow>
+                      </m:msub>
+                    </m:ci>
+                    <m:cn>0</m:cn>
+                  </m:apply>
+		</m:apply>
+		<m:cn>0.25</m:cn>
+	      </m:apply>
+	    </m:math>, where 
+	    <m:math>
+	      <m:ci>T</m:ci>
+	    </m:math> is the pitch period.
+
+	  </item>
+	</list>
+      </para>
+
+    </section>
+  </content>
+
+
+  <bib:file>
+    <bib:entry id="reference1">
+      <bib:book>
+	<bib:author>J. G. Proakis and D. G. Manolakis</bib:author>
+	<bib:title>Digital Signal Processing: 
+	      Principles, Algorithms, and Applications</bib:title>
+	<bib:publisher>Prentice-Hall</bib:publisher>
+	<bib:year>1996</bib:year>
+	<bib:address>Upper Saddle River, NJ</bib:address>
+      </bib:book>
+    </bib:entry>
+    <bib:entry id="reference2">
+      <bib:book>
+	<bib:author> L. Rabiner and B. H. Juang</bib:author>
+	<bib:title>Fundamentals of Speech Recognition</bib:title>
+	<bib:publisher>Prentice-Hall</bib:publisher>
+	<bib:year>1993</bib:year>
+	<bib:address>Englewood Cliffs, NJ</bib:address>
+      </bib:book>
+    </bib:entry>
+  </bib:file>
+
+</document>

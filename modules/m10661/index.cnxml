@@ -1,0 +1,97 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  <title>Digital Transmitter: Frequency Shift Keying Prelab Exercise</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>2ef0aa1c-3482-4301-a589-e644c87018e9</md:uuid>
+</metadata>
+
+
+  <content>
+
+    <section id="sec1">
+      <title>Prelab: Matlab Preparation</title>
+
+      <para id="para1">
+        We have made considerable use of Matlab in previous labs to
+        design filters and determine frequency responses of systems.
+        Matlab is also very useful as a simulation tool.
+      </para>
+
+      <para id="para2">
+        Use the following Matlab code skeleton to simulate your system
+        and fill in the incomplete portions.  Note that the code is not
+        complete and will not execute properly as written.  How does the
+        spectrum of the transmitted signal change with
+        <m:math>
+          <m:ci>
+            <m:msub>
+              <m:mi>T</m:mi>
+              <m:mi>symb</m:mi>
+            </m:msub>
+          </m:ci>
+        </m:math>?
+      </para>
+
+      <para id="para3">
+        <link url="http://cnx.rice.edu/modules/m10661/latest/lab_5_prelab.m">lab_5_prelab.m</link>
+      </para>
+
+  <code display="block" id="block1">
+    
+    1    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    2    % Matlab code skeleton for Digital Transmitter
+    3
+    4    close all;clear;
+    5
+    6    % Generate random bits
+    7    bits_per_symbol=2;
+    8    num_symbols=64;
+    9    numbits=bits_per_symbol*num_symbols;
+    10    bits=rand(1,numbits)&gt;0.5;
+    11
+    12    Tsymb=32;           % samples per symbol
+    13
+    14
+    15    % These are the 4 frequencies to choose from                    
+    16    % Note that 32 samples per symbol does not correspond to 
+    17    % an integer number of periods at these frequencies
+    18    omega1 =  9*pi/32;
+    19    omega2 = 13*pi/32;
+    20    omega3 = 17*pi/32;
+    21    omega4 = 21*pi/32;
+    22
+    23
+    24    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    25    % Transmitter section
+    26
+    27    % Initialize transmit sequence
+    28    index=1;			% Initialize bit index
+    29    n=1;				% Initialize sample index
+    30    phi=0;				% Initialize phase offset
+    31
+    32    % Generate 64 32-sample symbols
+    33    while (n&lt;=num_symbols*Tsymb)
+    34    
+    35      if (bits(index:index+1) == [0 0])
+    36         sig(n:n+Tsymb-1) = sin(omega1*[0:Tsymb-1]+phi);   
+    37         phi = omega1*Tsymb+phi;	% Calculate phase offset for next symbol
+    38         phi = mod(phi, 2*pi);	% Restrict phi to [0,2*pi)
+    39          
+    40     % -----------&gt; Insert code here &lt;-------------%
+    41     
+    42      end % end if-else statements
+    43   
+    44      index=index+2; % increment bit counter so we look at next 2 bits
+    45    
+    46      n=n+Tsymb;
+    47    end   % end while
+    48
+    49
+    50    % Show transmitted signal and its spectrum
+    51    % ---------------&gt; Insert code here &lt;-----------------%
+    
+  </code>
+
+    </section>
+
+  </content>
+  
+</document>

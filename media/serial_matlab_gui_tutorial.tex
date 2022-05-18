@@ -1,0 +1,73 @@
+%AUTHOR: Michael Kramer
+One of MATLAB's features is its ability to quickly create a visual interface
+that lets you use standard GUI controls (such as sliders, checkboxes and
+radio buttons) to call MATLAB scripts. An example of such an interface is 
+available in the \verb+V:\MAT_INT+ directory, which contains two files:
+\begin{itemize}
+  \item{\verb+ser_set.m+: Initializes the serial port and user interface}
+  \item{\verb+wrt_slid.m+: Called when sliders are moved to send new data}
+\end{itemize}
+
+\section{Creating a MATLAB user interface}
+
+The following code (\verb+ser_set.m+) initializes the serial port COM2, then
+creates a minimal user interface consisting of three sliders.
+
+\setlength{\baselineskip}{0.4cm}
+\listinginput{1}{ser_set.m}
+\setlength{\baselineskip}{0.5cm}
+
+Line 4 of this code uses the Windows NT \verb+mode+ command to set up
+COM port 2 (which is connected to the DSP) to match the serial port 
+settings on the DSP evaluation board: 38,400 bps, no parity, 8 data bits
+ and 1 stop bit. Line 7 then creates a new MATLAB figure for the controls;
+this prevents the controls from being overlaid on to of any graph you
+may have already created. 
+
+Lines 12 through the end create the three sliders for the user interface. 
+Several parameters are used to specify the behavior of each slider. The
+first parameter, \verb+Fig+, tells the slider to create itself in the 
+window we created in Line 7. The rest of the parameters are property/value
+pairs:
+
+\begin{itemize}
+  \item{\verb+units+: \verb+Normal+ tells MATLAB to use positioning relative 
+        to the window boundaries.}
+  \item{\verb+pos+: Tells MATLAB where to place the control.}
+  \item{\verb+style+: Tells MATLAB what type of control to place. \verb+slider+
+        creates a slider control.}
+  \item{\verb+value+: Tells MATLAB the default value for the control.}
+  \item{\verb+max+: Tells MATLAB the maximum value for the control.}
+  \item{\verb+min+: Tells MATLAB the minimum value for the control.}
+  \item{\verb+callback+: Tells MATLAB what script to call when the control is 
+        manipulated. \verb+wrt_slid+ is a MATLAB file that writes the values of
+        the controls to the serial port.}
+\end{itemize}
+
+\subsection{The User Interface Callback Function}
+
+Every time a slider is moved, the \verb+wrt_slid.m+ file is called:
+
+\setlength{\baselineskip}{0.4cm}
+\listinginput{1}{wrt_slid.m}
+\setlength{\baselineskip}{0.5cm}
+
+Line 4 of \verb+wrt_slid.m+ opens COM2 for writing. (It's already
+been initialized.) Then Line 7 retrieves the value from the slider
+using MATLAB's \verb+get+ function to retrieve the \verb+value+
+property. The value is then rounded off to create an integer,
+and the integer is sent as an 8-bit quantity to the DSP in Line 8.
+(The number that is sent at this step will appear when the serial
+port is read with \verb+READ_SER+ in your code.) Then the other
+two sliders are sent in the same way.
+
+Line 17 sends 0xFF (255) to the DSP, which can be used to indicate
+that the three previously-transmitted values represent a complete set
+of data points. This can be used to prevent the DSP and MATLAB from
+losing synchronization if a transmitted character is not received by
+the DSP.
+
+Line 20 closes the serial port. Note that MATLAB buffers the data
+being transmitted, and data is often not sent until the serial port
+is closed. Make sure you close the port after sending a data block
+to the DSP.

@@ -1,0 +1,60 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  
+  <title>Lab 3: Theory</title>
+  <metadata>
+  <md:content-id>m10025</md:content-id><md:title>Lab 3: Theory</md:title>
+  <md:abstract>Infinite impulse response (IIR) filters are an alternative to finite impulse response (FIR) filters.  Often, an IIR implementaion can meet a given filter specification with less computation than an FIR implementation, but IIR filters induce nonlinear phase and are more sensitive to numerical problems.</md:abstract>
+  <md:uuid>5431649a-d8e9-44ee-b4cf-d58b6153f128</md:uuid>
+</metadata>
+
+<content>
+    <section id="sec1">
+      <title>Introduction</title>
+      <para id="p2">
+	Like finite impulse-response (FIR) filters, <term>infinite
+	impulse-response</term> (<term>IIR</term>) filters are
+	<term>linear time-invariant</term> (<term>LTI</term>) systems
+	that can recreate a large range of different frequency
+	responses.  Compared to FIR filters, IIR filters have both
+	advantages and disadvantages.  On one hand, implementing an
+	IIR filter with certain stopband-attenuation and
+	transition-band requirements typically requires far fewer
+	filter taps than an FIR filter meeting the same
+	specifications.  This leads to a significant reduction in the
+	computational complexity required to achieve a given frequency
+	response.  However, the poles in the transfer function require
+	feedback to implement an IIR system.  In addition to inducing
+	nonlinear phase in the filter (delaying different frequency
+	input signals by different amounts), the feedback introduces
+	complications in implementing IIR filters on a fixed-point
+	processor.  Some of these complications are explored in <link document="m10813">IIR Filtering: Filter-Coefficient
+	Quanitization Exercise in MATLAB</link>.
+      </para>
+      <para id="p3">
+	Later, in the processor exercise, you will explore the
+	advantages and disadvantages of IIR filters by implementing
+	and examining a fourth-order IIR system on a fixed-point DSP.
+	The IIR filter should be implemented as a cascade of two
+	second-order, Direct Form II sections.  The data flow for a
+	second-order, Direct-Form II section, or <term>bi-quad</term>,
+	is shown in <link target-id="fig1"/>.  Note that in Direct Form
+	II, the states (delayed samples) are neither the input nor the
+	output samples, but are instead the intermediate values
+	<m:math>
+	  <m:apply>
+	    <m:ci type="fn" class="discrete">w</m:ci>
+	    <m:ci>n</m:ci>
+	  </m:apply>
+	</m:math>.
+      </para>
+
+      <figure id="fig1">
+	<media id="id3741842" alt="">
+          <image src="../../media/iir_DFIInew.png" mime-type="image/png"/>
+          <image for="pdf" src="../../media/iir_DFIInew.eps" mime-type="application/postscript"/>
+        </media>
+	<caption>Second-order, Direct Form II section</caption>
+      </figure>
+    </section>
+  </content>
+</document>

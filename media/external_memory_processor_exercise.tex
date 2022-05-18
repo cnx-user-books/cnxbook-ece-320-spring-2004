@@ -1,0 +1,65 @@
+
+%
+%
+% Module: external_memory_processor_exercise
+%
+% Author: Daniel Sachs
+%
+%
+
+You will be implementing three audio effects for this lab: a 2-second delay,
+a variable delay, and an feedback echo.
+
+\subsection{Delay Implementation}
+
+For this project lab, you will implement a 131,072 sample
+delay using external memory. Use memory locations 010000h - 02ffffh in
+extended program RAM to do this; you'll probably also want to use the
+\verb+dld+ and \verb+dst+ opcodes to store and retrieve the 32-bit
+addresses from the accumulators. Note that these two operations store
+the words in memory in big endian order, with the high-order word first.
+
+Use the \verb+reada+ and \verb+writa+
+instructions to read and write the extended program memory.
+Since the \verb+thru.asm+ file you were given in Lab 1 clears the
+OVLY bit, you can assume that you can read or write from all of the
+extended program memory without overwriting you program code or
+data area.
+
+Remember that arithmetic operations that act on the accumulators, such
+as the \verb+add+ instruction, operate the complete 32 or 40 bit wide
+value. Also keep in mind that since 131,072 is a power of two, you can
+use masking (via the \verb+and+ instruction) to implement the circular
+buffer easily.  This delay will be easy to verify on the oscilloscope.
+
+\subsection{Variable delay implementation}
+
+Once you have your delay code working with a 131,072 sample delay,
+change it so that the delay can be easily changed to any arbitrary
+length between zero (or one) and 131,072 samples by changing the value
+stored in one double-word pair in memory. You should keep the buffer
+length as 131,072 and change only your addressing of the sample being
+read back; it is more difficult to change the buffer size to a length
+that is not a power of two.
+
+Verify that your code works as expected by timing the delay from
+input to output and ensuring that it is approximately the
+right length.
+
+\subsection{Feedback echo implementation}
+
+Last, chnage your code so that the value taken from the end of
+the variable delay above is multiplied by a gain factor and
+then added back into the input, and the result is both saved
+into the delay line and sent out to the digital-to-analog converters.
+(It may be necessary to multiply
+the input by a gain as well to prevent overflow.) This will make
+a one-tap feedback echo, an simple audio effect that sounds remarkably
+good.
+
+To test this, hook up the DSP EVM input to the CD player on the
+computer, and the output to one of the pairs of speakers in the
+lab. This can be done using the RCA to 1/8 inch (headphone jack)
+converter plugs available in the lab.
+Verify that the echo can be heard multiple times, and that the
+spacing between echos matches the delay length you've chosen.

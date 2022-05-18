@@ -1,0 +1,34 @@
+
+%
+%
+% Module: lms_matlab_exercise
+%
+% Author: Michael Kramer
+%
+%
+
+Simulate the system identification block diagram
+shown in Figure \ref{fig: sys_id} on a sample
+by sample basis; that is, because the FIR filter
+changes at each sample, you must use a ``\verb+do+''
+loop in \matlab rather than the \verb+conv+ or \verb+filter+
+functions, which use the same filter coefficients for the
+entire input sequence.  For the unknown system, use the
+fourth order low-pass elliptical IIR filter designed for
+Lab 2.
+
+Use Gaussian random noise your input, which can
+be generated in \matlab using the command ``\verb+randn+''.
+Simulate the system with an initial adaptive FIR
+of zeros, starting with an adaptive filter of
+length 32, and a step-size of $0.02$.
+From your simulation you should be able
+to plot the error (or squared-error) as it
+evolves over time, as well as the final
+set of adapted coefficients.  (How do they compare
+to the unknown system coefficients?)
+
+With your simulation working, you will then want
+to experiment with different step-sizes and
+adaptive filter lengths.
+

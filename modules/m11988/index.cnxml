@@ -1,0 +1,222 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml">
+  <title>Video Processing Part 2: Grayscale and Color </title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>2c574b50-7f10-4303-9bf7-d33255654711</md:uuid>
+</metadata>
+
+  <content>
+<section id="sec1">
+<title>Introduction</title>
+<para id="one">
+The purpose of this project lab is to introduce how to further manipulate data acquired in grayscale mode and then expand this to the realm of color.  This lab is meant as a follow-up to “Video Processing Part 1: Introductory Exercise,”.  This lab will implement a grayscale auto-contrast and color image manipulation.
+</para>
+<para id="two">
+You will complete an introductory exercise to demonstrate your familiarity with the IDK programming environment.  You will then complete an introductory exercise in how to use color; and modify a C skeleton to apply simple color masks to video input from the camera.
+</para>
+<para id="three">
+After this lab, you should be able to effectively and efficiently manipulate grayscale images, as well as modify color images.
+</para>
+<para id="four">
+You may want to refer to the following TI manuals:
+<list id="first">
+<item><link url="http://www-s.ti.com/sc/psheets/spru494a/spru494a.pdf">IDK
+          User's Guide</link></item>
+
+          <item><link url="http://www-s.ti.com/sc/psheets/spru499/spru499.pdf">IDK
+          Video Device Drivers User's Guide</link></item>
+
+          <item><link url="http://www-s.ti.com/sc/psheets/spru495a/spru495a.pdf">IDK
+          Programmer's Guide</link>.  Section 2 is very, very important in this lab.</item>
+</list>
+</para>
+</section>
+
+<section id="sec2">
+<title>Prelab</title>
+<para id="five">
+Having familiarized yourself with grayscale images in the previous project lab, the first part of the prelab will require you to code a function similar to the flip_invert function you have already designed, while the second part of the prelab will introduce how to use and access color images.
+</para>
+
+<section id="sec2a">
+<title>Grayscale</title>
+<para id="six">
+In this part of the prelab exercise, you will develop an algorithm to find the maximum and minimum values of a grayscale input image.  Create a function that will process one row of the image at a time and find the overall minimum and maximum intensities in the image.
+</para>
+<para id="seven">
+auto_contrast_find_extrema(in_data, min, max, col)
+</para>
+</section>
+
+<section id="sec2b">
+<title>Color</title>
+<para id="eight">
+The NTSC camera acquires images in the color format YCbCr, where Y represents luminosity, Cb the blue component, and Cr the red component.  Each image must be converted to 16-bit RGB for output on a standard color computer monitor.  The function “ycbcr422pl_to_rgb565” performs this conversion.  Knowing how this function converts each pixel to RGB is relatively unimportant, however, knowing the packed (5:6:5) RBG format is essential.
+</para>
+<para id="nine">
+Before we ignore the ycbcr422pl_to_rgb565 function completely, it is useful to look at how it operates.  Find the run time of the function by examining the file “ycbcr422pl_to_rgb565.c” and note that it must convert an even number of pixels at a time.  If it were possible to have this function process the whole color image at in one function call, how many clock cycles would the function take?  Since we are limited in the number of rows we can modify at a time, how many clock cycles should it take to process the whole image one row at a time?  To demonstrate the overhead needed for this function, note how many clock cycles the function would take if it converted the whole image two pixels at a time.
+</para>
+
+<figure id="fig1">
+	<media id="idm5634176" alt=""><image src="../../media/color_table.JPG" mime-type="image/jpeg"/></media>
+	<caption>RGB (5:6:5).
+A packed RGB pixel holds 5 bits for red, 6 bits for green, and 5 bits for blue.
+</caption>
+</figure>
+
+<para id="ten">
+Since each color is not individually addressable in the packed RGB format (e.g. bits representing red and blue are stored in the same byte), being able to modify different bits of each byte is necessary.  To help clarify what bits are being set/cleared/toggled, numbers can be represented in hex format.  For example, the integer 58 can be represented by “00111010” in binary or by “3A” in hex.  In C, hex numbers are indicated with the prefix “0x.”
+</para>
+
+<para id="eleven">
+Example:
+<list id="second">
+<item>int black = 0x00;  // black = 0</item>
+<item>int foo_h = 0xF0;  // foo_h = 240</item>
+<item>int foo_l = 0x0D;  // foo_l = 13</item>
+</list>
+</para>
+
+<para id="twelve">
+Another thing to note is that each pixel requires two bytes of memory, requiring two memory access operations to alter each pixel. Also NOTE that in a row of input color data, the indexing starts at 1. Thus RGB[1] contains red/green data and then RGB[2] contains the green/blue data – both for the first pixel.
+</para>
+<para id="thirteen">
+What is the packed RGB value for the highest intensity green?  What is the value of the first addressable byte of this ‘hi-green’ pixel?  What is the value of the second byte?
+</para>
+<para id="fourteen">
+Now, say you are given the declaration of a pixel as follows:
+</para>
+<para id="fifteen">
+int pixel;
+</para>
+<para id="sixteen">
+Write a simple (one line is sufficient) section of code to add a blue tint to a pixel.
+Do the same for adding a red tint, and for a green tint (may require more than one line).
+Use the and (represented by an ampersand) operator to apply a mask.
+</para>
+
+</section>
+
+</section>
+
+<section id="sec3">
+<title>Implementation</title>
+
+<para id="seventeen">
+The first part of this lab will require you to write a function to perform auto-contrasting.  You should use your function from prelab 2.1 to obtain the maximum and minimum values of the image, and then create another function to do the appropriate scaling.
+</para>
+<para id="eighteen">
+The second part of this lab will involve implementing some simple, and hopefully cool, color effects.
+</para>
+
+<section id="sec3a">
+<title>Grayscale</title>
+<para id="nineteen">
+Use the function you designed in prelab 2.1 to create an algorithm to auto-contrast the image.  Auto-contrast is accomplished by scaling the pixel value from the min-to-max range to the full range.  This effect is seen below:
+</para>
+
+<figure id="fig2">
+	<media id="idp788400" alt=""><image src="../../media/channel_gray.jpg" mime-type="image/jpeg"/></media>
+	<caption>(left) Frequency of a grayscale image with pixel intensities ranging in value from 32 to 128, and (right) Frequency of the same grayscale image after performing an auto-contrast.
+</caption>
+</figure>
+
+<para id="twenty">
+Recall from “Introduction to the IDK” that the DSP has a floating point unit; the DSP will
+perform floating point instructions much faster than integer division, quare-root, etc.
+</para>
+
+<para id="twentyone">
+Example:
+<list id="third">
+<item>int opposite, adjacent;</item>
+<item>float tan;</item>
+<item>tan = ((float) opposite) / ((float) adjacent);</item>
+</list>
+</para>
+<para id="twentytwo">
+This function should be called similarly to the flip_invert function in the previous lab.  Once you have implemented your function, look for ways to optimize it.  Notice that you must loop through the image twice: once to find the minimum and maximum values, and then again to apply the scaling.  (Hint: the function dstr_rewind rewinds the image buffer).
+</para>
+<para id="twentythree">
+Use the same core files for this part of the lab as were used in the previous lab.  You may simply make a copy of the previous lab’s folder and develop the necessary code from there.
+</para>
+</section>
+
+<section id="sec3b">
+<title>Color</title>
+
+<para id="twentyfour">
+In this part of the lab, you will use the concepts from the prelab to implement certain effects.
+</para>
+<para id="twentyfive">
+Copy the directory “V:\ece320\projects\colorcool” to your W: drive.  
+</para>
+<para id="twentysix">
+We want to use a certain area of the screen as a "control surface". For example, the fingers held up on a hand placed within that area can be used as a parameter, to control the image on the screen. Specifically, we will use the total brightness of this control surface to control the color tint of the screen.
+</para>
+<para id="twentyseven">
+You are given a shell program which takes in a color input frame in YcbCr format and converts it to RGB. You will modify this shell to 
+<list id="fourth">
+<item>1. Calculate the total brightness</item>
+<item>2. Calculate the tint for each color component R, G and B.</item>
+<item>3. Apply the tint to the image</item>
+</list>
+</para>
+
+<section id="sec3b2">
+<title>Code Briefing</title>
+<para id="twentyeight">
+The code provided merely performs a color conversion required to go from the input NTSC image to the output RGB image. The relevant streams of data are brought in using the 
+in_luma, in_cr, in_cb  	odd and even streams
+</para>
+<para id="twentynine">
+The odd, even is done because the input YcbCr data is interlaced and the different "color" components Y(luminance), Cr, and Cb are stored in different arrays, unlike RGB where the data is packed together for each pixel.
+Thus the streams are accessed inside the color_conv_image wrapper function. We then pass a line at a time to the color_conv component function which converts and flips one line at a time. 
+</para>
+<para id="thirty">
+We will need to modify the code here, in color_conv to achieve your goals. The control surface will be a square block 100 by 100 pixels in the bottom left corner of the screen. The brightness will be calculated by summing all the R, G and B values of all the pixels in this portion of the screen. We then apply the tint effect as such:
+<list id="fifth">
+<item>if the total brightness is below a certain level 'X': use a red tint,</item>
+<item>if the total brightness is above 'X' and below 'Y' : use a green tint,</item>
+<item>if above 'Y' : use a blue tint</item>
+</list>
+</para>
+<para id="thirtyone">
+The tint has to be scaled too. For example, if brightness is less than X but close to it we need a high blue. But if it's closer to zero we need a darker blue and so on. The scaling need not be linear. In fact if you did the auto-contrast function you will have noticed that the floating point operations are expensive, they tend to slow the system. This is more so in the color case, as we have more data to scale. So try to use simple bit shifts to achieve the needed effect. 
+<list id="sixth">
+<item>Right Shift : <code>&gt;&gt;</code></item>
+<item>Left Shift : <code>&lt;&lt;</code></item>
+<item>Masking : Use a single ampersand, so to extract the first red component: <code>RGB[1] &amp;amp; 0xF8</code></item>
+</list>
+</para>
+
+</section>
+
+<section id="sec3b3">
+<title>Tips and Tricks</title>
+
+<para id="thirtytwo">
+You're on your own now! But some things to remember and to watch out for are presented here, as well as ideas for improvement.  Remember:
+<list id="seventh">
+<item>The input is two bytes per pixel. Keep the packed RGB format in mind.</item>
+<item>Also we process one line at a time from top to bottom. We cannot go back to previous lines to change them. So we can only modify the tint of the screen below the control surface. What you could do however is keep global variables for the different scalings in main. Then pass these to color_conv by reference, and update it when converting colors. But perform the update after using the existing scale values to scale the screen region above the control surface. This will introduce a delay from scaling change to screen update. This can be solved by copying the entire input to memory before outputting it but this is quite expensive, and we'll deal with memory in the next section.</item>
+<item>Be careful when performing masking, shifting and separting. Bring things down to least significant set of bits (within a byte) to simplify thinking of the scaling. Also be careful not to overlap masks, especially during shifting and adding</item>
+</list>
+</para>
+
+<para id="thirtythree">
+Here are a few recommendations:
+<list id="eighth">
+<item>Try to use the Y data passed to the color_con funtion to compute the brightness – much faster.</item>
+<item>Also poke around and find out how to use the Cr, Cb data and scale those. It's far less expensive and may produce neater results.</item>
+<item>If something doesn't work, think things through again. Or better still take a break and then come back to the problem.</item>
+</list>
+</para>
+
+</section>
+
+</section>
+
+</section>
+   
+  </content>
+  
+</document>

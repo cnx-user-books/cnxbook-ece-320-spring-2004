@@ -1,0 +1,92 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  
+  <title>Lab 2: Theory</title>
+  <metadata>
+  <md:content-id>m10024</md:content-id><md:title>Lab 2: Theory</md:title>
+  <md:abstract>A sample-rate compressor removes (D-1) of every D input samples.  A sample-rate expander inserts (U-1) zeros after every input sample.</md:abstract>
+  <md:uuid>ee12c5fc-e018-405b-8634-20e33391c54b</md:uuid>
+</metadata>
+
+<content>
+    <section id="sec1">
+      <title>Introduction</title>
+      <para id="p1">
+	In the exercises that follow, you will explore some of the
+	effects of <term>multirate processing</term> using the system
+	in <link target-id="fig1"/>.  The <term>sample-rate
+	  compressor</term> 
+	(<m:math>
+	  <m:apply>
+	    <m:mo>↓</m:mo>
+	    <m:ci>D</m:ci>
+	  </m:apply>
+	</m:math>) in the block-diagram removes 
+	<m:math>
+	  <m:apply>
+	    <m:minus/>
+	    <m:ci>D</m:ci>
+	    <m:cn>1</m:cn>
+	  </m:apply>
+	</m:math> of every 
+	<m:math>
+	  <m:ci>D</m:ci>
+	</m:math> input samples, while the <term>sample-rate
+	  expander</term> 
+	(<m:math>
+	  <m:apply>
+	    <m:mo>↑</m:mo>
+	    <m:ci>U</m:ci>
+	  </m:apply>
+	</m:math>) inserts 
+	<m:math>
+	  <m:apply>
+	    <m:minus/>
+	    <m:ci>U</m:ci>
+	    <m:cn>1</m:cn>
+	  </m:apply>
+	</m:math> zeros after every input sample.  With the
+	compression and expansion factors set to the same value (
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:ci>D</m:ci>
+	    <m:ci>U</m:ci>
+	  </m:apply>
+	</m:math>), filters FIR 1 and FIR 3 operate at the sample rate
+	<m:math>
+	  <m:ci><m:msub> 
+	      <m:mi>F</m:mi> 
+	      <m:mi>s</m:mi>
+	    </m:msub></m:ci> 
+	</m:math>, while filter FIR 2 operates at the lower rate of
+	<m:math>
+	  <m:apply>
+	    <m:divide/>
+	    <m:ci><m:msub>
+		<m:mi>F</m:mi>
+		<m:mi>s</m:mi>
+	      </m:msub></m:ci>
+	    <m:ci>D</m:ci>
+	  </m:apply>
+	</m:math>.
+      </para>
+
+      <figure id="fig1">
+	<media id="id1164121110693" alt="">
+          <image src="../../media/multirate_sys.png" mime-type="image/png"/>
+          <image for="pdf" src="../../media/multirate_sys.eps" mime-type="application/postscript"/>
+        </media>
+	<caption>Net multirate system</caption>
+      </figure>
+
+      <para id="p2">
+	Later, you will implement the system and control the
+	compression and expansion factors at runtime with an interface
+	provided for you.  You will be able to disable any or all of
+	the filters to investigate multirate effects.  What purpose do
+	FIR 1 and FIR 3 serve, and what would happen in their absence?
+      </para>
+    </section>
+
+  </content>
+</document>

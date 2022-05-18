@@ -1,0 +1,77 @@
+\documentclass[11pt]{handout}
+\usepackage{moreverb}
+\usepackage{tabularx}
+\usepackage{epsf}
+\usepackage{epsfig}
+\usepackage{fancyheadings}
+\usepackage{fancybox}
+
+\renewcommand{\coursetitle}{ECE 320}
+\renewcommand{\handouttitle}{Symbol Timing Recovery}
+\renewcommand{\handoutauthor}{Michael Kramer}
+\renewcommand{\semestertitle}{Spring 2001}
+
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+
+\setlength{\parindent}{5mm}
+\begin{document}
+
+\setlength{\baselineskip}{0.5cm}
+\setlength{\parskip}{0.5cm}
+
+\makeboxtitle
+\vspace{0.3cm}
+
+\section{Introduction:}
+
+\input{symb_timing_theory_tutorial}
+
+\section{Matlab Simulation}
+
+\input{symb_timing_matlab_exercise}
+
+\section{DSP Implementation}
+
+Once a working \matlab simulation is completed, the DSP implementation 
+of this exercise is relatively straight forward.  To test your
+implementation you can use the function generator to generate
+a BPSK waveform by setting it to a square wave of the correct 
+frequency.  
+You should send the on-time sample as well as the averaging filter output
+to the D/A to verify that your system is working. 
+
+\section{Extensions}
+
+As your final project will require some modification to the discussed
+BPSK signaling, you will want to refer to the listed references,
+\cite{Proakis1, Blahut1}, and
+consider some of the following questions regarding such modifications:
+
+$\bullet$ How much noise is necessary to disrupt the symbol-timing?
+
+$\bullet$ What happens when the input is random 
+          (not simply $+1, -1, +1, -1, ...$)?
+
+$\bullet$ What would the matched filter look like for different symbol shapes?
+ 
+$\bullet$ What other methods of symbol timing are available for your 
+          application?
+
+$\bullet$ How does accumulating the early-late decisions help suppress the 
+          effects of noise?
+
+
+\bibliographystyle{ieeetr}
+\bibliography{../../ece320}
+
+\end{document}
+\bye
+
+
+
+
+
+
+
+

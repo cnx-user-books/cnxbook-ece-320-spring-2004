@@ -1,0 +1,119 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  <title>Spectrum Analyzer: MATLAB Exercise</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>78c357ff-5621-4b79-86e0-704512460f33</md:uuid>
+</metadata>
+
+
+
+
+
+  <content>
+    <section id="sec2">
+      <title>MATLAB Exercise</title>
+      <para id="p6">
+	Since the DFT is a sampled version of the spectrum of a
+	digital signal, it has certain sampling effects.  To explore
+	these sampling effects more thoroughly, we consider the effect
+	of multiplying the time signal by different window functions
+	and the effect of using zero-padding to increase the length
+	(and thus the number of sample points) of the DFT.  Using the
+	following MATLAB script as an example, plot the
+	squared-magnitude response of the following test cases over
+	the digital frequencies
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:ci>
+	      <m:msub>
+		<m:mi>ω</m:mi>
+		<m:mi>c</m:mi>
+	      </m:msub>
+	    </m:ci>
+	    <m:interval>
+	      <m:apply>
+		<m:divide/>
+		<m:pi/>
+		<m:cn>8</m:cn>
+	      </m:apply>
+	      <m:apply>
+		<m:divide/>
+		<m:apply>
+		  <m:times/>
+		  <m:cn>3</m:cn>
+		  <m:pi/>
+		</m:apply>
+		<m:cn>8</m:cn>
+	      </m:apply>
+	    </m:interval>
+	  </m:apply>
+	</m:math>.  
+      </para>
+      <list id="list1" list-type="enumerated">
+	<item>rectangular window with no zero-padding</item>
+	<item>hamming window with no zero-padding</item>
+	<item>rectangular window with zero-padding by factor of four
+	(<foreign>i.e.</foreign>, 1024-point FFT)</item>
+	<item>hamming window window with zero-padding by factor of
+	  four</item>
+      </list>
+      <para id="p7">
+	Window sequences can be generated in MATLAB by using the
+	<code>boxcar</code> and <code>hamming</code> functions.
+      </para>
+      <code display="block" id="idm229552">
+	
+	1  N = 256;                % length of test signals
+	2  num_freqs = 100;        % number of frequencies to test
+	3
+	4  % Generate vector of frequencies to test
+	5
+	6  omega = pi/8 + [0:num_freqs-1]'/num_freqs*pi/4;
+	7
+	8  S = zeros(N,num_freqs);                 % matrix to hold FFT results
+	9
+	10
+	11  for i=1:length(omega)                   % loop through freq. vector
+	12     s = sin(omega(i)*[0:N-1]');          % generate test sine wave
+	13     win = boxcar(N);                     % use rectangular window
+	14     s = s.*win;                          % multiply input by window
+	15     S(:,i) = (abs(fft(s))).^2;           % generate magnitude of FFT
+	16                                          % and store as a column of S
+	17  end
+	18
+	19  clf;
+	20  plot(S);                                % plot all spectra on same graph
+	21
+	
+      </code>
+      <para id="p8">
+	Make sure you understand what every line in the script does.
+	What signals are plotted?
+      </para>
+      <para id="p9">
+	You should be able to describe the tradeoff between mainlobe
+	width and sidelobe behavior for the various window functions.
+	Does zero-padding increase frequency resolution?  Are we
+	getting something for free?  What is the relationship between
+	the DFT,
+	<m:math>
+	  <m:apply>
+	    <m:ci type="fn" class="discrete">X</m:ci>
+	    <m:ci>k</m:ci>
+	  </m:apply>
+	</m:math>, and the DTFT,
+	<m:math>
+	  <m:apply>
+	    <m:ci type="fn">X</m:ci>
+	      <m:ci>ω</m:ci>
+	  </m:apply>
+	</m:math>, of a sequence
+	<m:math>
+	  <m:apply>
+	    <m:ci type="fn" class="discrete">x</m:ci>
+	    <m:ci>n</m:ci>
+	  </m:apply>
+	</m:math>?
+      </para>
+    </section>
+  </content>
+</document>

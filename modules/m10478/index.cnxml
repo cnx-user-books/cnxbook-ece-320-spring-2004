@@ -1,0 +1,1388 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml" xmlns:bib="http://bibtexml.sf.net/">
+
+  <title>Digital Receiver: Carrier Recovery</title>
+
+  <metadata>
+  <md:content-id>m10478</md:content-id><md:title>Digital Receiver: Carrier Recovery</md:title>
+  <md:abstract>The phase-locked loop (PLL) is a critical component in coherent communications receivers that is responsible for locking on to the carrier of a received modulated signal.  A PLL adjusts the phase of a numerically-controlled oscillator to match that of the received signal.  You will simulate a carrier recovery sub-system in MATLAB and then implement the sub-system on the DSP.</md:abstract>
+  <md:uuid>2716a63c-dddd-4192-8267-ab4664b62fae</md:uuid>
+</metadata>
+
+<content>
+    <section id="section1">
+      <title>Introduction</title>
+
+      <para id="para1">
+	After gaining a theoretical understanding of the carrier
+	recovery sub-system of a digital receiver, you will simulate
+	the sub-system in MATLAB and implement it on the DSP.  The
+	sub-system described is specifically tailored to a
+	non-modulated carrier.  A complete implementation will require
+	modifications to the design presented.
+      </para>
+
+      <para id="para2">
+	The <term>phase-locked loop</term> (<term>PLL</term>) is a
+	critical component in coherent communications receivers that
+	is responsible for locking on to the carrier of a received
+	modulated signal.  Ideally, the transmitted carrier frequency
+	is known exactly and we need only to know its phase to
+	demodulate correctly.  However, due to imperfections at the
+	transmitter, the actual carrier frequency may be slightly
+	different from the expected frequency.  For example, in the
+	QPSK transmitter of <link document="m10042">Digital
+	Transmitter: Introduction to Quadrature Phase-Shift
+	Keying</link>, if the digital carrier frequency is 
+	<m:math>
+	  <m:apply>
+	    <m:divide/>
+	    <m:pi/>
+	    <m:cn>2</m:cn>
+	  </m:apply>
+	</m:math> and the D/A is operating at 44.1 kHz, then the
+	expected analog carrier frequency is
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:ci>
+	      <m:msub>
+		<m:mi>f</m:mi>
+		<m:mi>c</m:mi>
+	      </m:msub>
+	    </m:ci>
+	    <m:apply>
+	      <m:times/>
+	      <m:apply>
+		<m:divide/>
+		<m:apply>
+		  <m:divide/>
+		  <m:pi/>
+		  <m:cn>2</m:cn>
+		</m:apply>
+		<m:apply>
+		  <m:times/>
+		  <m:cn>2</m:cn>
+		  <m:pi/>
+		</m:apply>
+	      </m:apply>
+	      <m:cn>44.1</m:cn>
+	    </m:apply>
+	    <m:apply>
+	      <m:times/>
+	      <m:cn>11.25</m:cn>
+	      <m:ci>kHz</m:ci>
+	    </m:apply>
+	  </m:apply>
+	</m:math>.  If there is a slight change to the D/A sample rate
+	(say
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:ci>
+	      <m:msub>
+		<m:mi>f</m:mi>
+		<m:mi>c</m:mi>
+	      </m:msub>
+	    </m:ci>
+	    <m:apply>
+	      <m:times/>
+	      <m:cn>44.05</m:cn>
+	      <m:ci>kHz</m:ci>
+	    </m:apply>
+	  </m:apply>
+	</m:math>), then there will be a corresponding change in the
+	actual analog carrier frequency
+
+	(<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:ci>
+	      <m:msub>
+		<m:mi>f</m:mi>
+		<m:mi>c</m:mi>
+	      </m:msub>
+	    </m:ci>
+	    <m:apply>
+	      <m:times/>
+	      <m:cn>11.0125</m:cn>
+	      <m:ci>kHz</m:ci>
+	    </m:apply>
+	  </m:apply>
+	</m:math>).
+      </para>
+
+      <para id="para3">
+	This difference between the expected and actual carrier
+	frequencies can be modeled as a time-varying phase.  Provided
+	that the frequency mismatch is small relative to the carrier
+	frequency, the feedback control of an appropriately calibrated
+	PLL can track this time-varying phase, thereby locking on to
+	both the correct frequency and the correct phase.
+      </para>
+      
+      <figure id="figure1">
+	<media id="id6336205" alt="">
+          <image src="../../media/pll.png" mime-type="image/png"/>
+          <image for="pdf" src="../../media/pll.eps" mime-type="application/postscript"/>
+        </media>
+	<caption>PLL Block Diagram</caption>
+      </figure>
+
+      <section id="subsection1">
+	<title>Numerically controlled oscillator</title>
+	<para id="subpara">
+	  In a complete coherent receiver implementation, carrier
+	  recovery is required since the receiver typically does not
+	  know the exact phase and frequency of the transmitted
+	  carrier.  In an analog system this recovery is often
+	  implemented with a <term>voltage-controlled
+	  oscillator</term> (<term>VCO</term>) that allows for precise
+	  adjustment of the carrier frequency based on the output of a
+	  phase-detecting circuit.
+	</para>
+
+	<para id="subpara2">
+	  In our digital application, this adjustment is performed
+	  with a <term>numerically-controlled oscillator</term>
+	  (<term>NCO</term>) (see <link target-id="figure1"/>).  A simple
+	  scheme for implementing an NCO is based on the following
+	  re-expression of the carrier sinusoid:
+	  <equation id="eq1">
+	    <m:math>
+	      <m:apply>
+		<m:eq/>
+		<m:apply>
+		  <m:sin/>
+		  <m:apply>
+		    <m:plus/>
+		    <m:apply>
+		      <m:times/>
+		      <m:ci>
+			<m:msub>
+			  <m:mi>ω</m:mi>
+			  <m:mi>c</m:mi>
+			</m:msub>
+		      </m:ci>
+		      <m:ci>n</m:ci>
+		    </m:apply>
+		    <m:ci>
+		      <m:msub>
+			<m:mi>θ</m:mi>
+			<m:mi>c</m:mi>
+		      </m:msub>
+		    </m:ci>
+		  </m:apply>
+		</m:apply>
+		<m:apply>
+		  <m:sin/>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">θ</m:ci>
+		    <m:ci>n</m:ci>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:math>
+	  </equation> where
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:apply>
+		<m:ci type="fn" class="discrete">θ</m:ci>
+		<m:ci>n</m:ci>
+	      </m:apply>
+	      <m:apply>
+		<m:plus/>
+		<m:apply>
+		  <m:times/>
+		  <m:ci>
+		    <m:msub>
+		      <m:mi>ω</m:mi>
+		      <m:mi>c</m:mi>
+		    </m:msub>
+		  </m:ci>
+		  <m:ci>n</m:ci>
+		</m:apply>
+		<m:ci>
+		  <m:msub>
+		    <m:mi>θ</m:mi>
+		    <m:mi>c</m:mi>
+		  </m:msub>
+		</m:ci>
+	      </m:apply>
+	    </m:apply>
+	  </m:math> 
+	  (<m:math>
+	    <m:apply>
+	      <m:ci>
+		<m:msub>
+		  <m:mi>ω</m:mi>
+		  <m:mi>c</m:mi>
+		</m:msub>
+	      </m:ci>
+	    </m:apply>
+	  </m:math> and
+	  <m:math>
+	    <m:apply>
+	      <m:ci>
+		<m:msub>
+		  <m:mi>θ</m:mi>
+		  <m:mi>c</m:mi>
+		</m:msub>
+	      </m:ci>
+	    </m:apply>
+	  </m:math> represent the carrier frequency and phase,
+	  respectively).  Convince yourself that this time-varying
+	  phase term can be expressed as
+	  <m:math display="inline">
+	    <m:apply>
+	      <m:eq/>
+	      <m:apply>
+		<m:ci type="fn" class="discrete">θ</m:ci>
+		<m:ci>n</m:ci>
+	      </m:apply>
+	      <m:apply>
+		<m:plus/>
+		<m:apply>
+		  <m:sum/>
+		  <m:bvar>
+		    <m:ci>m</m:ci>
+		  </m:bvar>
+		  <m:lowlimit>
+		    <m:cn>0</m:cn>
+		  </m:lowlimit>
+		  <m:uplimit>
+		    <m:ci>n</m:ci>
+		  </m:uplimit>
+		  <m:ci>
+		    <m:msub>
+		      <m:mi>ω</m:mi>
+		      <m:mi>c</m:mi>
+		    </m:msub>
+		  </m:ci>
+		</m:apply>
+		<m:ci>
+		  <m:msub>
+		    <m:mi>θ</m:mi>
+		    <m:mi>c</m:mi>
+		  </m:msub>
+		</m:ci>
+	      </m:apply>
+	    </m:apply>
+	  </m:math> and then recursively as
+	  <equation id="eq2">
+	    <m:math>
+	      <m:apply>
+		<m:eq/>
+		<m:apply>
+		  <m:ci type="fn" class="discrete">θ</m:ci>
+		  <m:ci>n</m:ci>
+		</m:apply>
+		<m:apply>
+		  <m:plus/>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">θ</m:ci>
+		    <m:apply>
+		      <m:minus/>
+		      <m:ci>n</m:ci>
+		      <m:cn>1</m:cn>
+		    </m:apply>
+		  </m:apply>
+		  <m:ci>
+		    <m:msub>
+		      <m:mi>ω</m:mi>
+		      <m:mi>c</m:mi>
+		    </m:msub>
+		  </m:ci>
+		</m:apply>
+	      </m:apply>
+	    </m:math>
+	  </equation> The NCO can keep track of the phase,
+	  <m:math>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">θ</m:ci>
+	      <m:ci>n</m:ci>
+	    </m:apply>
+	  </m:math>, and force a phase offset in the demodulating
+	  carrier by incorporating an extra term in this recursive
+	  update:
+	  <equation id="eq3">
+	    <m:math>
+	      <m:apply>
+		<m:eq/>
+		<m:apply>
+		  <m:ci type="fn" class="discrete">θ</m:ci>
+		  <m:ci>n</m:ci>
+		</m:apply>
+		<m:apply>
+		  <m:plus/>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">θ</m:ci>
+		    <m:apply>
+		      <m:minus/>
+		      <m:ci>n</m:ci>
+		      <m:cn>1</m:cn>
+		    </m:apply>
+		  </m:apply>
+		  <m:ci>
+		    <m:msub>
+		      <m:mi>ω</m:mi>
+		      <m:mi>c</m:mi>
+		    </m:msub>
+		  </m:ci>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">
+		      <m:msub>
+			<m:mi>d</m:mi>
+			<m:mi>pd</m:mi>
+		      </m:msub>
+		    </m:ci>
+		    <m:ci>n</m:ci>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:math>
+	  </equation>where
+	  <m:math>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">
+		<m:msub>
+		  <m:mi>d</m:mi>
+		  <m:mi>pd</m:mi>
+		</m:msub>
+	      </m:ci>
+	      <m:ci>n</m:ci>
+	    </m:apply>
+	  </m:math> is the amount of desired phase offset at time
+	  <m:math>
+	    <m:ci>n</m:ci> 
+	  </m:math>.  (What would
+	  <m:math>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">
+		<m:msub>
+		  <m:mi>d</m:mi>
+		  <m:mi>pd</m:mi>
+		</m:msub>
+	      </m:ci>
+	      <m:ci>n</m:ci>
+	    </m:apply>
+	  </m:math> look like to generate a frequency offset?)
+	</para>
+      </section>
+
+      <section id="subsec2">
+	<title>Phase detector</title>
+	<para id="para4">
+	  The goal of the PLL is to maintain a demodulating sine and
+	  cosine that match the incoming carrier.  Suppose
+	  <m:math>
+	    <m:ci>
+	      <m:msub>
+		<m:mi>ω</m:mi>
+		<m:mi>c</m:mi>
+	      </m:msub>
+	    </m:ci>
+	  </m:math> is the believed digital carrier frequency.  We can
+	  then represent the actual received carrier frequency as the
+	  expected carrier frequency with some offset,
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci>
+		<m:mover>
+		  <m:msub>
+		    <m:mi>ω</m:mi>
+		    <m:mi>c</m:mi>
+		  </m:msub>
+		  <m:mo>˜</m:mo>
+		</m:mover>
+	      </m:ci>
+	      <m:apply>
+		<m:plus/>
+		<m:ci>
+		  <m:msub>
+		    <m:mi>ω</m:mi>
+		    <m:mi>c</m:mi>
+		  </m:msub>
+		</m:ci>
+		<m:apply>
+		  <m:ci type="fn" class="discrete">
+		    <m:mover>
+		      <m:mi>θ</m:mi>
+		      <m:mo>˜</m:mo>
+		    </m:mover>
+		  </m:ci>
+		  <m:ci>n</m:ci>
+		</m:apply>
+	      </m:apply>
+	    </m:apply>
+	  </m:math>.  The NCO generates the demodulating sine and
+	  cosine with the expected digital frequency
+	  <m:math>
+	    <m:ci>
+	      <m:msub>
+		<m:mi>ω</m:mi>
+		<m:mi>c</m:mi>
+	      </m:msub>
+	    </m:ci>
+	  </m:math> and offsets this frequency with the output of the
+	  loop filter.  The NCO frequency can then be modeled as
+	  
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci>
+		<m:mover>
+		  <m:msub>
+		    <m:mi>ω</m:mi>
+		    <m:mi>c</m:mi>
+		  </m:msub>
+		  <m:mo>^</m:mo>
+		</m:mover>
+	      </m:ci>
+	      <m:apply>
+		<m:plus/>
+		<m:ci>
+		  <m:msub>
+		    <m:mi>ω</m:mi>
+		    <m:mi>c</m:mi>
+		  </m:msub>
+		</m:ci>
+		<m:apply>
+		  <m:ci type="fn" class="discrete">
+		    <m:mover>
+		      <m:mi>θ</m:mi>
+		      <m:mo>^</m:mo>
+		    </m:mover>
+		  </m:ci>
+		  <m:ci>n</m:ci>
+		</m:apply>
+	      </m:apply>
+	    </m:apply>
+	  </m:math>.  Using the appropriate trigonometric identities
+	  <footnote id="id1172327212404">
+	    <m:math>
+	      <m:apply>
+		<m:eq/>
+		<m:apply>
+		  <m:times/>
+		  <m:apply>
+		    <m:cos/>
+		    <m:ci>A</m:ci>
+		  </m:apply>
+		  <m:times/>
+		  <m:apply>
+		    <m:cos/>
+		    <m:ci>B</m:ci>
+		  </m:apply>
+		</m:apply>
+		<m:apply>
+		  <m:times/>
+		  <m:cn type="rational">1<m:sep/>2</m:cn>
+		  <m:apply>
+		    <m:plus/>
+		    <m:apply>
+		      <m:cos/>
+		      <m:apply>
+			<m:minus/>
+			<m:ci>A</m:ci>
+			<m:ci>B</m:ci>
+		      </m:apply>
+		    </m:apply>
+		    <m:apply>
+		      <m:cos/>
+		      <m:apply>
+			<m:plus/>
+			<m:ci>A</m:ci>
+			<m:ci>B</m:ci>
+		      </m:apply>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:math> and 
+
+	    <m:math>
+	      <m:apply>
+		<m:eq/>
+		<m:apply>
+		  <m:times/>
+		  <m:apply>
+		    <m:cos/>
+		    <m:ci>A</m:ci>
+		  </m:apply>
+		  <m:times/>
+		  <m:apply>
+		    <m:sin/>
+		    <m:ci>B</m:ci>
+		  </m:apply>
+		</m:apply>
+		<m:apply>
+		  <m:times/>
+		  <m:cn type="rational">1<m:sep/>2</m:cn>
+		  <m:apply>
+		    <m:plus/>
+		    <m:apply>
+		      <m:sin/>
+		      <m:apply>
+			<m:minus/>
+			<m:ci>B</m:ci>
+			<m:ci>A</m:ci>
+		      </m:apply>
+		    </m:apply>
+		    <m:apply>
+		      <m:sin/>
+		      <m:apply>
+			<m:plus/>
+			<m:ci>A</m:ci>
+			<m:ci>B</m:ci>
+		      </m:apply>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:math>.</footnote>, the in-phase and quadrature signals can
+	  be expressed as
+	  <equation id="eq5">
+	    <m:math>
+	      <m:apply>
+		<m:eq/>
+		<m:apply>
+		  <m:ci type="fn" class="discrete">
+		    <m:msub>
+		      <m:mi>z</m:mi>
+		      <m:mn>0</m:mn>
+		    </m:msub>
+		  </m:ci>
+		  <m:ci>n</m:ci>
+		</m:apply>
+		<m:apply>
+		  <m:times/>
+		  <m:cn type="rational">1<m:sep/>2</m:cn>
+		  <m:apply>
+		    <m:plus/>
+		    <m:apply>
+		      <m:cos/>
+		      <m:apply>
+			<m:minus/>
+			<m:apply>
+			  <m:ci type="fn" class="discrete">
+			    <m:mover>
+			      <m:mi>θ</m:mi>
+			      <m:mo>˜</m:mo>
+			    </m:mover>
+			  </m:ci>
+			  <m:ci>n</m:ci>
+			</m:apply>
+			<m:apply>
+			  <m:ci type="fn" class="discrete">
+			    <m:mover>
+			      <m:mi>θ</m:mi>
+			      <m:mo>^</m:mo>
+			    </m:mover>
+			  </m:ci>
+			  <m:ci>n</m:ci>
+			</m:apply>
+		      </m:apply>
+		    </m:apply>
+		    <m:apply>
+		      <m:cos/>
+		      <m:apply>
+			<m:plus/>
+			<m:apply>
+			  <m:times/>
+			  <m:cn>2</m:cn>
+			  <m:ci>
+			    <m:msub>
+			      <m:mi>ω</m:mi>
+			      <m:mi>c</m:mi>
+			    </m:msub>
+			  </m:ci>
+			</m:apply>
+			<m:apply>
+			  <m:ci type="fn" class="discrete">
+			    <m:mover>
+			      <m:mi>θ</m:mi>
+			      <m:mo>˜</m:mo>
+			    </m:mover>
+			  </m:ci>
+			  <m:ci>n</m:ci>
+			</m:apply>
+			<m:apply>
+			  <m:ci type="fn" class="discrete">
+			    <m:mover>
+			      <m:mi>θ</m:mi>
+			      <m:mo>^</m:mo>
+			    </m:mover>
+			  </m:ci>
+			  <m:ci>n</m:ci>
+			</m:apply>
+		      </m:apply>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:math>
+	  </equation>
+
+	  <equation id="eq6">
+	    <m:math>
+	      <m:apply>
+		<m:eq/>
+		<m:apply>
+		  <m:ci type="fn" class="discrete">
+		    <m:msub>
+		      <m:mi>z</m:mi>
+		      <m:mi>Q</m:mi>
+		    </m:msub>
+		  </m:ci>
+		  <m:ci>n</m:ci>
+		</m:apply>
+		<m:apply>
+		  <m:times/>
+		  <m:cn type="rational">1<m:sep/>2</m:cn>
+		  <m:apply>
+		    <m:plus/>
+		    <m:apply>
+		      <m:sin/>
+		      <m:apply>
+			<m:minus/>
+			<m:apply>
+			  <m:ci type="fn" class="discrete">
+			    <m:mover>
+			      <m:mi>θ</m:mi>
+			      <m:mo>˜</m:mo>
+			    </m:mover>
+			  </m:ci>
+			  <m:ci>n</m:ci>
+			</m:apply>
+			<m:apply>
+			  <m:ci type="fn" class="discrete">
+			    <m:mover>
+			      <m:mi>θ</m:mi>
+			      <m:mo>^</m:mo>
+			    </m:mover>
+			  </m:ci>
+			  <m:ci>n</m:ci>
+			</m:apply>
+		      </m:apply>
+		    </m:apply>
+		    <m:apply>
+		      <m:sin/>
+		      <m:apply>
+			<m:plus/>
+			<m:apply>
+			  <m:times/>
+			  <m:cn>2</m:cn>
+			  <m:ci>
+			    <m:msub>
+			      <m:mi>ω</m:mi>
+			      <m:mi>c</m:mi>
+			    </m:msub>
+			  </m:ci>
+			</m:apply>
+			<m:apply>
+			  <m:ci type="fn" class="discrete">
+			    <m:mover>
+			      <m:mi>θ</m:mi>
+			      <m:mo>˜</m:mo>
+			    </m:mover>
+			  </m:ci>
+			  <m:ci>n</m:ci>
+			</m:apply>
+			<m:apply>
+			  <m:ci type="fn" class="discrete">
+			    <m:mover>
+			      <m:mi>θ</m:mi>
+			      <m:mo>^</m:mo>
+			    </m:mover>
+			  </m:ci>
+			  <m:ci>n</m:ci>
+			</m:apply>
+		      </m:apply>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:math>
+	  </equation>
+
+	  After applying a low-pass filter to remove the double
+	  frequency terms, we have
+	  <equation id="eq7">
+	    <m:math>
+	      <m:apply>
+		<m:eq/>
+		<m:apply>
+		  <m:ci type="fn" class="discrete">
+		    <m:msub>
+		      <m:mi>y</m:mi>
+		      <m:mn>1</m:mn>
+		    </m:msub>
+		  </m:ci>
+		  <m:ci>n</m:ci>
+		</m:apply>
+		<m:apply>
+		  <m:times/>
+		  <m:cn type="rational">1<m:sep/>2</m:cn>
+		  <m:apply>
+		    <m:cos/>
+		    <m:apply>
+		      <m:minus/>
+		      <m:apply>
+			<m:ci type="fn" class="discrete">
+			  <m:mover>
+			    <m:mi>θ</m:mi>
+			    <m:mo>˜</m:mo>
+			  </m:mover>
+			</m:ci>
+			<m:ci>n</m:ci>
+		      </m:apply>
+		      <m:apply>
+			<m:ci type="fn" class="discrete">
+			  <m:mover>
+			    <m:mi>θ</m:mi>
+			    <m:mo>^</m:mo>
+			  </m:mover>
+			</m:ci>
+			<m:ci>n</m:ci>
+		      </m:apply>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:math>
+	  </equation>
+
+	  <equation id="eq8">
+	    <m:math>
+	      <m:apply>
+		<m:eq/>
+		<m:apply>
+		  <m:ci type="fn" class="discrete">
+		    <m:msub>
+		      <m:mi>y</m:mi>
+		      <m:mi>Q</m:mi>
+		    </m:msub>
+		  </m:ci>
+		  <m:ci>n</m:ci>
+		</m:apply>
+		<m:apply>
+		  <m:times/>
+		  <m:cn type="rational">1<m:sep/>2</m:cn>
+		  <m:apply>
+		    <m:sin/>
+		    <m:apply>
+		      <m:minus/>
+		      <m:apply>
+			<m:ci type="fn" class="discrete">
+			  <m:mover>
+			    <m:mi>θ</m:mi>
+			    <m:mo>˜</m:mo>
+			  </m:mover>
+			</m:ci>
+			<m:ci>n</m:ci>
+		      </m:apply>
+		      <m:apply>
+			<m:ci type="fn" class="discrete">
+			  <m:mover>
+			    <m:mi>θ</m:mi>
+			    <m:mo>^</m:mo>
+			  </m:mover>
+			</m:ci>
+			<m:ci>n</m:ci>
+		      </m:apply>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:math>
+	  </equation>
+	  Note that the quadrature signal,
+	  <m:math>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">
+		<m:msub>
+		  <m:mi>z</m:mi>
+		  <m:mi>Q</m:mi>
+		</m:msub>
+	      </m:ci>
+	      <m:ci>n</m:ci>
+	    </m:apply>
+	  </m:math>, is zero when the received carrier and internally
+	  generated waves are exactly matched in frequency and phase.
+	  When the phases are only slightly mismatched we can use the
+	  relation
+	  <equation id="eq9">
+	    <m:math>
+	      <m:apply>
+		<m:forall/>
+		<m:bvar>
+		  <m:ci>θ</m:ci>
+		</m:bvar>
+		<m:condition>
+		  <m:ci>small</m:ci>
+		</m:condition>
+		<m:apply>
+		  <m:approx/>
+		  <m:apply>
+		    <m:sin/>
+		    <m:ci>θ</m:ci>
+		  </m:apply>
+		  <m:ci>θ</m:ci>
+		</m:apply>
+	      </m:apply>
+	    </m:math>
+	  </equation> and let the current value of the quadrature
+	  channel approximate the phase difference:
+	  <m:math>
+	    <m:apply>
+	      <m:approx/>
+	      <m:apply>
+		<m:ci type="fn" class="discrete">
+		  <m:msub>
+		    <m:mi>z</m:mi>
+		    <m:mi>Q</m:mi>
+		  </m:msub>
+		</m:ci>
+		<m:ci>n</m:ci>
+	      </m:apply>
+	      <m:apply>
+		<m:minus/>
+		<m:apply>
+		  <m:ci type="fn" class="discrete">
+		    <m:mover>
+		      <m:mi>θ</m:mi>
+		      <m:mo>˜</m:mo>
+		    </m:mover>
+		  </m:ci>
+		  <m:ci>n</m:ci>
+		</m:apply>
+		<m:apply>
+		  <m:ci type="fn" class="discrete">
+		    <m:mover>
+		      <m:mi>θ</m:mi>
+		      <m:mi>^</m:mi>
+		    </m:mover>
+		  </m:ci>
+		  <m:ci>n</m:ci>
+		</m:apply>
+	      </m:apply>
+	    </m:apply>
+	  </m:math>.  With the exception of the sign error, this
+	  difference is essentially how much we need to offset our NCO
+	  frequency<footnote id="id1172325950865">If
+	    <m:math>
+	      <m:apply>
+		<m:gt/>
+		<m:apply>
+		  <m:minus/>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">
+		      <m:mover>
+			<m:mi>θ</m:mi>
+			<m:mo>˜</m:mo>
+		      </m:mover>
+		    </m:ci>
+		    <m:ci>n</m:ci>
+		  </m:apply>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">
+		      <m:mover>
+			<m:mi>θ</m:mi>
+			<m:mo>^</m:mo>
+		      </m:mover>
+		    </m:ci>
+		    <m:ci>n</m:ci>
+		  </m:apply>
+		</m:apply>
+		<m:cn>0</m:cn>
+	      </m:apply>
+	    </m:math> then
+	    <m:math>
+	      <m:apply>
+		<m:ci type="fn" class="discrete">
+		  <m:mover>
+		    <m:mi>θ</m:mi>
+		    <m:mo>^</m:mo>
+		  </m:mover>
+		</m:ci>
+		<m:ci>n</m:ci> 
+	      </m:apply> 
+	    </m:math> is too large and we want to decrease our NCO
+	  phase.</footnote>.  To make sure that the sign of the phase
+	  estimate is right, in this example the phase detector is
+	  simply negative one times the value of the quadrature
+	  signal.  In a more advanced receiver, information from both
+	  the in-phase and quadrature branches is used to generate an
+	  estimate of the phase error.<footnote id="id1172326824650">What
+	  should the relationship between the I and Q branches be for
+	  a digital QPSK signal?</footnote>
+	</para>
+      </section>
+
+      <section id="subsect3">
+	<title>Loop filter</title>
+	<para id="subsec3para1">
+	  The estimated phase mismatch estimate is fed to the NCO via
+	  a loop filter, often a simple low-pass filter. For this
+	  exercise you can use a one-tap IIR filter,
+	  <equation id="eq10">
+	    <m:math>
+	      <m:apply>
+		<m:eq/>
+		<m:apply>
+		  <m:ci type="fn" class="discrete">y</m:ci>
+		  <m:ci>n</m:ci>
+		</m:apply>
+		<m:apply>
+		  <m:plus/>
+		  <m:apply>
+		    <m:times/>
+		    <m:ci>β</m:ci>
+		    <m:apply>
+		      <m:ci type="fn" class="discrete">x</m:ci>
+		      <m:ci>n</m:ci>
+		    </m:apply>
+		  </m:apply>
+		  <m:apply>
+		    <m:times/>
+		    <m:ci>α</m:ci>
+		    <m:apply>
+		      <m:ci type="fn" class="discrete">y</m:ci>
+		      <m:apply>
+			<m:minus/>
+			<m:ci>n</m:ci>
+			<m:cn>1</m:cn>
+		      </m:apply>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:math>
+	  </equation> To ensure unity gain at DC, we select
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci>β</m:ci>
+	      <m:apply>
+		<m:minus/>
+		<m:cn>1</m:cn>
+		<m:ci>α</m:ci>
+	      </m:apply>
+	    </m:apply>
+	  </m:math>
+	</para>
+
+	<para id="subsec3para2">
+	  It is suggested that you start by choosing
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci>α</m:ci>
+	      <m:cn>0.6</m:cn>
+	    </m:apply>
+	  </m:math> and
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci>K</m:ci>
+	      <m:cn>0.15</m:cn>
+	    </m:apply>
+	  </m:math> for the loop gain.  Once you have a working
+	  system, investigate the effects of modifying these values.
+	</para>
+      </section>
+    </section>
+
+    <section id="sec2">
+      <title>MATLAB Simulation</title>
+      <para id="para5">
+	Simulate the PLL system shown in <link target-id="figure1"/>
+	using MATLAB.  As with the DLL simulation, you will have to
+	simulate the PLL on a sample-by-sample basis.
+      </para>
+
+      <para id="para6">
+	Use <link target-id="eq3"/> to implement your NCO in MATLAB.
+	However, to ensure that the phase term does not grow to
+	infinity, you should use addition modulo
+	<m:math>
+	  <m:apply>
+	    <m:times/>
+	    <m:cn>2</m:cn>
+	    <m:pi/>
+	  </m:apply>
+	</m:math> in the phase update relation.  This can be done by
+	setting
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">θ</m:ci>
+	      <m:ci>n</m:ci>
+	    </m:apply>
+	    <m:apply>
+	      <m:minus/>
+	      <m:apply>
+		<m:ci type="fn" class="discrete">θ</m:ci>
+		<m:ci>n</m:ci>
+	      </m:apply>
+	      <m:apply>
+		<m:times/>
+		<m:cn>2</m:cn>
+		<m:pi/>
+	      </m:apply>
+	    </m:apply>
+	  </m:apply>
+	</m:math> whenever 
+	<m:math>
+	  <m:apply>
+	    <m:gt/>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">θ</m:ci>
+	      <m:ci>n</m:ci>
+	    </m:apply>
+	    <m:apply>
+	      <m:times/>
+	      <m:cn>2</m:cn>
+	      <m:pi/>
+	    </m:apply>
+	  </m:apply>
+	</m:math>.
+      </para>
+
+      <para id="para6fix">
+	<link target-id="figure2"/> illustrates how the proposed PLL will
+	behave when given a modulated BPSK waveform.  In this case the
+	transmitted carrier frequency was set to
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:ci>
+	      <m:mover>
+		<m:msub>
+		  <m:mi>ω</m:mi>
+		  <m:mi>c</m:mi>
+		</m:msub>
+		<m:mo>˜</m:mo>
+	      </m:mover>
+	    </m:ci>
+	    <m:apply>
+	      <m:plus/>
+	      <m:apply>
+		<m:divide/>
+		<m:pi/>
+		<m:cn>2</m:cn>
+	      </m:apply>
+	      <m:apply>
+		<m:divide/>
+		<m:pi/>
+		<m:cn>1024</m:cn>
+	      </m:apply>
+	    </m:apply>
+	  </m:apply>
+	</m:math> to simulate a frequency offset.
+      </para>
+
+      <figure id="figure2">
+	<media id="id1172327177736" alt="">
+          <image src="../../media/pll_output.png" mime-type="image/png"/>
+          <image for="pdf" src="../../media/pll_output.eps" mime-type="application/postscript"/>
+        </media>
+	<caption>Output of PLL sub-system for BPSK modulated
+	  carrier.</caption>
+      </figure>
+
+      <para id="para7">
+	Note that an amplitude transition in the BPSK waveform is
+	equivalent to a phase shift of the carrier by
+	<m:math>
+	  <m:apply>
+	    <m:divide/>
+	    <m:pi/>
+	    <m:cn>2</m:cn>
+	  </m:apply>
+	</m:math>.  Immediately after this phase change occurs, the
+	PLL begins to adjust the phase to force the quadrature
+	component to zero (and the in-phase component to
+	<m:math>
+	  <m:cn type="rational">1<m:sep/>2</m:cn>
+	</m:math>).  Why would this phase detector not work in a real
+	BPSK environment?  How could it be changed to work?
+      </para>
+    </section>
+
+    <section id="section3">
+      <title>DSP Implementation</title>
+      <para id="para8">
+	As you begin to implement your PLL on the DSP, it is highly
+	recommended that you implement and test your NCO block first
+	before completing the rest of your phase-locked loop.
+      </para>
+
+      <section id="section4">
+	<title>Sine-table interpolation</title>
+	<para id="mark1">
+	  Your NCO must be able to produce a sinusoid with
+	  continuously variable frequency.  Computing values of
+
+	  <m:math>
+	    <m:apply>
+	      <m:sin/>
+	      <m:apply>
+		<m:ci type="fn" class="discrete">θ</m:ci>
+		<m:ci>n</m:ci>
+	      </m:apply>
+	    </m:apply>
+	  </m:math>
+
+	  on the fly would require a prohibitive amount of computation
+	  and program complexity; a look-up table is a better
+	  alternative.
+	</para>
+	<para id="mark2">
+	  Suppose a sine table stores 
+	  <m:math>
+	    <m:ci>N</m:ci>
+	  </m:math> samples from one cycle of the waveform:
+	  <m:math>
+	    <m:apply>
+	      <m:forall/>
+	      <m:bvar><m:ci>k</m:ci></m:bvar>
+	      <m:condition>
+		<m:apply>
+		  <m:eq/>
+		  <m:ci>k</m:ci>
+		  <m:set>
+		    <m:cn>0</m:cn>
+		    <m:ci>…</m:ci>
+		    <m:apply>
+		      <m:minus/>
+		      <m:ci>N</m:ci>
+		      <m:cn>1</m:cn>
+		    </m:apply>
+		  </m:set>
+		</m:apply>
+	      </m:condition>
+	      <m:apply>
+		<m:sin/>
+		<m:apply>
+		  <m:divide/>
+		  <m:apply>
+		    <m:times/>
+		    <m:cn>2</m:cn>
+		    <m:pi/>
+		    <m:ci>k</m:ci>
+		  </m:apply>
+		  <m:ci>N</m:ci>
+		</m:apply>
+	      </m:apply>
+	    </m:apply>
+	  </m:math>.  Sine waves with discrete frequencies
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci>ω</m:ci>
+	      <m:apply>
+		<m:times/>
+		<m:apply>
+		  <m:divide/>
+		  <m:apply>
+		    <m:times/>
+		    <m:cn>2</m:cn>
+		    <m:pi/>
+		  </m:apply>
+		  <m:ci>N</m:ci>
+		</m:apply>
+		<m:ci>p</m:ci>
+	      </m:apply>
+	    </m:apply>
+	  </m:math> are easily obtained by outputting every
+	  <m:math>
+	    <m:ci><m:msup>
+		<m:mi>p</m:mi>
+		<m:mi>th</m:mi>
+	      </m:msup></m:ci>
+	  </m:math> value in the table (and using circular
+	  addressing).  The continuously variable frequency of your
+	  NCO will require <emphasis>non-integer</emphasis>
+	  increments, however.  This raises two issues: First, what
+	  sort of interpolation should be used to get the in-between
+	  sine samples, and second, how to maintain a non-integer
+	  pointer into the sine table.
+	</para>
+	<para id="mark3">
+	  You may simplify the interpolation problem by using
+	  "lower-neighbor" interpolation, i.e., by using the integer
+	  part of your pointer.  Note that the full-precision,
+	  non-integer pointer must be maintained in memory so that the
+	  fractional part is allowed to accumulate and carry over into
+	  the integer part; otherwise, your phase will not be accurate
+	  over long periods.  For a long enough sine table, this
+	  approximation will adjust the NCO frequency with sufficient
+	  precision.<footnote id="id1172326205858">Of course, nearest-neighbor
+	  interpolation could be implemented with a small amount of
+	  extra code.</footnote>
+	</para>
+	<para id="mark4">
+	  Maintaining a non-integer pointer is more difficult.  In
+	  earlier exercises, you have used the auxiliary registers
+	  (<code>ARx</code>) to manage pointers with integer
+	  increments.  The auxiliary registers are not suited for the
+	  non-integer pointers needed in this exercise, however, so
+	  another method is required.  One possibility is to perform
+	  addition in the accumulator with a modified decimal point.
+	  For example, with
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci>N</m:ci>
+	      <m:cn>256</m:cn>
+	    </m:apply>
+	  </m:math>, you need eight bits to represent the integer
+	  portion of your pointer.  Interpret the low 16 bits of the
+	  accumulator to have a decimal point seven bits up from the
+	  bottom; this leaves nine bits to store the integer part
+	  above the decimal point.  To increment the pointer by one
+	  step, add a 15-bit value to the low part of the accumulator,
+	  then zero the top bit to ensure that the value in the
+	  accumulator is greater than or equal to zero and less than
+	  256.<footnote id="id3632030">How is this similar to the
+	  addition modulo
+	  <m:math>
+	    <m:apply>
+	      <m:times/>
+	      <m:cn>2</m:cn>
+	      <m:pi/>
+	    </m:apply>
+	  </m:math> discussed in the <link target-id="sec2">MATLAB
+	  Simulation</link>?</footnote> To use the integer part of this
+	  pointer, shift the accumulator contents seven bits to the
+	  right, add the starting address of the sine table, and store
+	  the low part into an <code>ARx</code> register.  The
+	  auxiliary register now points to the correct sample in the
+	  sine table.
+	</para>
+
+	<para id="mark5">
+	  As an example, for a nominal carrier frequency 
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci>ω</m:ci>
+	      <m:apply>
+		<m:divide/>
+		<m:pi/>
+		<m:cn>8</m:cn>
+	      </m:apply>
+	    </m:apply>
+	  </m:math> and sine table length 
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:ci>N</m:ci>
+	      <m:cn>256</m:cn>
+	    </m:apply>
+	  </m:math>, 
+	  the nominal step size is an integer 
+
+          <m:math>
+            <m:apply>
+              <m:eq/>
+	      <m:ci>p</m:ci>
+	      <m:apply>
+		<m:times/>
+		<m:apply>
+		  <m:divide/>
+		  <m:pi/>
+		  <m:cn>8</m:cn>
+		</m:apply>
+		<m:ci>N</m:ci>
+		<m:apply>
+		  <m:divide/>
+		  <m:cn>1</m:cn>
+		  <m:apply>
+		    <m:times/>
+		    <m:cn>2</m:cn>
+		    <m:pi/>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	      <m:cn>16</m:cn>
+            </m:apply>
+          </m:math>.  Interpret the 16-bit pointer as having nine bits
+	  for the integer part, followed by a decimal point and seven
+	  bits for the fractional part.  The corresponding literal
+	  (integer) value added to the accumulator would be
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:apply>
+		<m:times/>
+		<m:cn>16</m:cn>
+		<m:apply>
+		  <m:power/>
+		  <m:cn>2</m:cn>
+		  <m:cn>7</m:cn>
+		</m:apply>
+	      </m:apply>
+	      <m:cn>2048</m:cn>
+	    </m:apply>
+	  </m:math>.<footnote id="id7925689">If this value were 2049,
+	  what would be the output frequency of the NCO?</footnote>
+	</para>
+      </section>
+      
+      <section id="section5">
+	<title>Extensions</title>
+	<para id="para12">
+	  You may want to refer to <cite target-id="reference1"><cite-title>Proakis</cite-title></cite> and <cite target-id="reference2"><cite-title>Blahut</cite-title></cite>. These references may help
+	  you think about the following questions:
+	  <list id="list1" list-type="bulleted">
+	    <item>
+	      How does the noise affect the described carrier
+	      recovery method?
+	    </item>
+	    <item>
+	      What should the phase-detector look like for a BPSK
+	      modulated carrier?  (Hint: You would need to consider
+	      both the in-phase and quadrature channels.)
+	    </item>
+	    <item>
+	      How does α affect the bandwidth of the loop
+	      filter?
+	    </item>
+	    <item>
+	      How do the loop gain and the bandwidth of the
+	      loop filter affect the PLL's ability to lock on to a
+	      carrier frequency mismatch?
+	    </item>
+	  </list>
+	</para>
+      </section>
+    </section>
+    
+  </content>
+  <bib:file>
+    <bib:entry id="reference1">
+      <bib:book>
+	<bib:author>J.G. Proakis</bib:author> 
+	<bib:title>Digital Communications</bib:title>
+	<bib:publisher>McGraw-Hill</bib:publisher> 
+	<bib:year>1995</bib:year>
+	<bib:edition>3rd edition</bib:edition>
+      </bib:book>
+    </bib:entry>
+    <bib:entry id="reference2">
+      <bib:book>
+	<bib:author>R. Blahut</bib:author> 
+	<bib:title>Digital Transmission of Information</bib:title>
+	<bib:publisher>Addison-Wesley</bib:publisher> 
+	<bib:year>1990</bib:year>
+      </bib:book>
+    </bib:entry>
+  </bib:file>
+  
+  
+</document>

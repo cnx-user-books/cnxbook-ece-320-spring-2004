@@ -1,0 +1,119 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  <title>Multirate Filtering: Implementation on TI TMS320C54x</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>9ca4e796-86f5-4ff4-bc65-e6b6db21d810</md:uuid>
+</metadata>
+
+
+
+
+
+
+  <content>
+    <section id="sec3">
+      <title>Implementation</title>
+      <para id="p10">
+	Before implementing the entire system shown in <link document="m10024" target-id="fig1">Multirate Processing:
+	Introduction</link>, we recommend you design a system that
+	consists of a cascade of filters FIR 1 and FIR 2 without the
+	sample-rate compressor or expander.  After verifying that the
+	response of your two-filter system is correct, proceed to
+	implement the complete multirate system and verify its total
+	response.  At first, use fixed compression and expansion
+	factors of
+	<m:math>
+	  <m:apply>
+	    <m:eq/>
+	    <m:ci>D</m:ci>
+	    <m:ci>U</m:ci>
+	    <m:cn>4</m:cn>
+	  </m:apply>
+	</m:math>.  After you have verified that the multirate system
+        works at a fixed rate, you should modify your code so that the 
+        rate can be changed easily.  Later, you have the option of controlling 
+        this factor in real-time using a MATLAB interface.   
+        <emphasis>Regardless of whether you choose to use the MATLAB interface,
+        you must be able to quickly change the compression and expansion  
+        factors when you demo your code</emphasis>.
+      </para>
+
+      <section id="sec3a">
+	<title>Compressed-rate processing</title>
+	<para id="p12">
+	  In order to perform the processing at the lower sample rate,
+	  implement a counter in your code.  Your counter will
+	  determine when the compressed-rate processing is to occur,
+	  and it can also be used to determine when to insert zeros
+	  into FIR 3 to implement the sample-rate expander.
+	</para>
+
+	<para id="p13">
+	  Some instructions that may be useful for implementing your
+	  multirate structure are the <code>addm</code> (add to
+	  memory) and <code>bc</code> (branch conditional)
+	  instructions.  You may also find the <code>banz</code>
+	  (branch on auxiliary register not zero) and the <code>b</code>
+          (branch) instruction useful.
+	</para>
+
+      </section>
+
+      <section id="sec3b">
+	<title>Real-time rate change and MATLAB interface (Optional)</title>
+	<para id="p16">
+	  A simple graphical user interface (GUI) is available (as
+	  <link resource="mrategui.m">mrategui.m</link>, which requires
+	  <link resource="ser_snd.m">ser_snd.m</link>) that sends a number
+	  between 1 and 10 to the DSP via the serial port.  This can
+	  be used to change the compression and expansion factor in
+	  real time.
+	</para>
+	<para id="p18">
+	  Run the GUI by typing <code>mrategui</code> at the MATLAB
+	  prompt.  A figure should automatically open up with a slider
+	  on it; adjusting the slider changes the compression and
+	  expansion factor sent to the DSP.
+	</para>
+
+	<para id="p17">
+	  The assembly code for interacting with the serial port, provided in   
+          the handout <link document="m10821">Core File: Serial Port 
+          Communication Between MATLAB and TI TMS320C54x</link>, stores the     
+          last number that the DSP has received from the computer in the
+	  memory location labeled <code>hold</code>.  Therefore,
+	  unless you have changed the serial portion of the given
+	  code, you can find the last compression and expansion factor
+	  set by the GUI in this location.  You need to modify your
+	  code so that each time a new number is received on the
+	  serial port, the compression and expansion factor is
+	  changed.  If a "1" is received on the serial port, the
+	  entire system should run at the full rate; if a "10" is
+	  received, the system should discard nine samples between
+	  each sample processed at the lower rate.
+	</para>
+	<para id="p14">
+	  Note that the <code>READSER</code> and <code>WRITSER</code>
+	  macros, which are used to read data from and send data to
+	  the serial port, overwrite <code>AR0</code>,
+	  <code>AR1</code>, <code>AR2</code>, and <code>AR3</code>
+	  registers, as well as <code>BK</code> and the condition flag
+	  <code>TC</code>.  You must therefore ensure that these
+	  registers are not used by your code, or that you save and
+	  restore their values in memory before you call the
+	  <code>READSER</code> and <code>WRITSER</code> macros.  This
+	  can be done using the <code>mvdm</code> and
+	  <code>mvmd</code> instructions.  The serial macros set up
+	  the <code>AR1</code> and <code>AR3</code> each time they are
+	  called, so there is no need to change these registers before
+	  the macros are called.
+	</para>
+
+	<para id="p15">
+	  More detail about the <code>READSER</code> and
+	  <code>WRITSER</code> macros can be found in <link document="m10821">Core File: Serial Port Communication
+	  Between MATLAB and TI TMS320C54x</link>.
+	</para>
+
+      </section>
+    </section>
+  </content>
+</document>

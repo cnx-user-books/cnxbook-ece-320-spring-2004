@@ -1,0 +1,126 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml">
+  <title>IIR Filtering: Filter-Coefficient Quantization Exercise in MATLAB</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>995968a8-16b8-4c32-84a6-7863419147bb</md:uuid>
+</metadata>
+
+
+
+
+
+  <content>
+    <section id="sec3">
+      <title>Filter-Coefficient Quantization</title>
+      <para id="p10">
+	One important issue that must be considered when IIR filters
+	are implemented on a fixed-point processor is that the filter
+	coefficients that are actually used are quantized from the
+	"exact" (high-precision floating point) values computed by
+	MATLAB.  Although quantization was not a concern when we
+	worked with FIR filters, it can cause significant deviations
+	from the expected response of an IIR filter.
+      </para>
+      <para id="p11">
+	By default, MATLAB uses 64-bit floating point numbers in all
+	of its computation. These floating point numbers can typically
+	represent 15-16 digits of precision, far more than the DSP can
+	represent internally.  For this reason, when creating filters
+	in MATLAB, we can generally regard the precision as
+	"infinite," because it is high enough for any reasonable task.
+	<note type="Note" id="idm10351552"><label>Note</label>
+	  Not all IIR filters are necessarily "reasonable"!
+	</note>
+	The DSP, on the other hand, operates using 16-bit fixed-point
+	numbers in the range of -1.0 to
+	<m:math>
+	  <m:apply>
+	    <m:minus/>
+	    <m:cn>1.0</m:cn>
+	    <m:apply>
+	      <m:power/>
+	      <m:cn>2</m:cn>
+	      <m:cn>-15</m:cn>
+	    </m:apply>
+	  </m:apply>
+	</m:math>.  This gives the DSP only 4-5 digits of precision
+	and only if the input is properly scaled to occupy the full
+	range from -1 to 1.
+      </para>
+      <para id="p12">
+	For this section exercise, you will examine how this
+	difference in precision affects a <term>notch filter</term>
+	generated using the <term><code>butter</code></term> command:
+	<code>[B,A] = butter(2,[0.07 0.10],'stop')</code>.
+      </para>
+
+      <section id="sec3a">
+	<title>Quantizing coefficients in MATLAB</title>
+	<para id="p13">
+	  It is not difficult to use MATLAB to <term>quantize</term>
+	  the filter coefficients to the 16-bit precision used on the
+	  DSP.  To do this, first take each vector of filter
+	  coefficients (that is, the 
+	  <m:math>
+	    <m:ci type="vector">A</m:ci>
+	  </m:math> and 
+	  <m:math>
+	    <m:ci type="vector">B</m:ci> 
+	  </m:math> vectors) and divide by the smallest power of two
+	  such that the resulting absolute value of the largest filter
+	  coefficient is less than or equal to one.  This is an easy
+	  but fairly reasonable approximation of how numbers outside
+	  the range of -1 to 1 are actually handled on the DSP.
+	</para>
+	<para id="p13a">
+	  Next, quantize the resulting vectors to 16 bits of precision
+	  by first multiplying them by
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:apply>
+		<m:power/>
+		<m:cn>2</m:cn>
+		<m:cn>15</m:cn>
+	      </m:apply>
+	      <m:cn>32768</m:cn>
+	    </m:apply>
+	  </m:math>, rounding to the nearest integer (use
+	  <code>round</code>), and then dividing the resulting vectors
+	  by 32768. Then multiply the resulting numbers, which will be
+	  in the range of -1 to 1, back by the power of two that you
+	  divided out.
+	</para>
+      </section>
+
+      <section id="sec3b">
+	<title>Effects of quantization</title>
+	<para id="p14">
+	  Explore the effects of quantization by quantizing the filter
+	  coefficients for the notch filter.  Use the
+	  <code>freqz</code> command to compare the response of the
+	  unquantized filter with two quantized versions: first,
+	  quantize the entire fourth-order filter at once, and second,
+	  quantize the second-order ("bi-quad") sections separately
+	  and recombine the resulting quantized sections using the
+	  <term><code>conv</code></term> function.  Compare the
+	  response of the unquantized filter and the two quantized
+	  versions.  Which one is "better?"  Why do we always
+	  implement IIR filters using second-order sections instead of
+	  implementing fourth (or higher) order filters directly?
+	</para>
+	<para id="p15">
+	  Be sure to create graphs showing the difference between the
+	  filter responses of the unquantized notch filter, the notch
+	  filter quantized as a single fourth-order section, and the
+	  notch filter quantized as two second-order sections.  Save
+	  the MATLAB code you use to generate these graphs, and be
+	  prepared to reproduce and explain the graphs as part of your
+	  quiz.  Make sure that in your comparisons, you rescale the
+	  resulting filters to ensure that the response is unity (one)
+	  at frequencies far outside the notch.
+	</para>
+      </section>
+    </section>
+
+  </content>
+  
+</document>

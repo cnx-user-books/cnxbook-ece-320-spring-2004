@@ -1,0 +1,84 @@
+\documentclass[11pt]{handout}
+\usepackage{moreverb}
+\usepackage{tabularx}
+\usepackage{epsf}
+\usepackage{epic}
+\usepackage{eepic}
+\usepackage{epsfig}
+\usepackage{epsf}
+\usepackage{fancyheadings}
+\usepackage{fancybox}
+
+\renewcommand{\coursetitle}{ECE 320}
+\renewcommand{\handouttitle}{Carrier Recovery}
+\renewcommand{\handoutauthor}{Michael Kramer}
+\renewcommand{\semestertitle}{Spring 2000}
+
+\newcommand{\blt}{\mbox{$\bullet$ }}
+
+\newcommand{\bea}{\begin{eqnarray}}
+\newcommand{\eea}{\end{eqnarray}}
+
+\setlength{\parindent}{5mm}
+\begin{document}
+
+\setlength{\baselineskip}{0.5cm}
+\setlength{\parskip}{0.5cm}
+
+\makeboxtitle
+\vspace{0.3cm}
+
+\section{Introduction:}
+
+This handout is designed to provide you with a brief
+description on the carrier recovery sub-system of a digital receiver 
+and addresses some of the details associated with its 
+implementation/simulation in \matlab and on the DSP.
+The sub-system covered is specifically tailored to a
+non-modulated carrier.  In the final PLL implementation used for
+your digital receiver you will have to make modifications
+to the specific details mentioned.
+
+\input{carrier_recovery_theory_tutorial}
+
+\section{Matlab Simulation:}
+
+\input{carrier_recovery_matlab_exercise}
+
+\section{DSP Implementation:}
+
+As you begin to implement your PLL on the DSP it is highly
+recommended that you implement and 
+test your NCO block first before completing the rest
+of the phase-locked loop.
+
+\input{carrier_recovery_processor_exercise}
+
+\section{Extensions}
+
+As your final project will require some modification to the discussed
+non-modulated carrier recovery, you will want to refer to the listed 
+references, \cite{Proakis1, Blahut1},
+and consider some of the following questions regarding such 
+modifications:
+
+\blt How does the addition of noise affect the described carrier recovery 
+method?
+
+\blt What should the phase-detector look like for a BPSK modulated carrier?
+
+\vspace*{-.1in}
+\hspace{.1in} (Hint: you now need to consider both the in-phase and 
+quadrature channels.)
+
+\blt How does $\alpha$ affect the bandwidth of the loop-filter?
+
+\blt How does the loop-gain, $K$, and the bandwidth of the loop-filter
+affect the PLL's ability to lock onto a carrier frequency mismatch?
+
+\bibliographystyle{ieeetr}
+\bibliography{../../ece320}
+
+
+\end{document}
+\bye

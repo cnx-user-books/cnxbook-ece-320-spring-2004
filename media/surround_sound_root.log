@@ -1,0 +1,205 @@
+This is TeX, Version 3.14159 (Web2C 7.3.1) (format=latex 2001.4.24)  23 MAY 2001 15:15
+**surround_sound_root.tex
+(surround_sound_root.tex
+LaTeX2e <1998/12/01> patch level 1
+Babel <v3.6x> and hyphenation patterns for american, french, german, ngerman, n
+ohyphenation, loaded.
+(handout.cls
+Document Class: handout 1998/04/29
+(/usr/share/texmf/tex/latex/fancyheadings/fancyheadings.sty
+\headrulewidth=\dimen102
+\footrulewidth=\dimen103
+\plainheadrulewidth=\dimen104
+\plainfootrulewidth=\dimen105
+\headwidth=\dimen106
+\footruleskip=\dimen107
+)
+(/usr/share/texmf/tex/latex/tools/hhline.sty
+Package: hhline 1994/05/23 v2.03 Table rule package (DPC)
+)
+(/usr/share/texmf/tex/latex/tools/xspace.sty
+Package: xspace 1997/10/13 v1.06 Space after command names (DPC)
+)
+(/usr/share/texmf/tex/latex/tools/array.sty
+Package: array 1998/05/13 v2.3m Tabular extension package (FMi)
+\col@sep=\dimen108
+\extrarowheight=\dimen109
+\NC@list=\toks14
+\extratabsurround=\skip41
+\backup@length=\skip42
+)
+(/usr/share/texmf/tex/latex/amsfonts/amssymb.sty
+Package: amssymb 1996/11/03 v2.2b
+
+(/usr/share/texmf/tex/latex/amsfonts/amsfonts.sty
+Package: amsfonts 1997/09/17 v2.2e
+\@emptytoks=\toks15
+\symAMSa=\mathgroup4
+\symAMSb=\mathgroup5
+LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
+(Font)                  U/euf/m/n --> U/euf/b/n on input line 133.
+))
+(/usr/share/texmf/tex/latex/base/article.cls
+Document Class: article 1999/01/07 v1.4a Standard LaTeX document class
+(/usr/share/texmf/tex/latex/base/size10.clo
+File: size10.clo 1999/01/07 v1.4a Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip43
+\belowcaptionskip=\skip44
+\bibindent=\dimen110
+))
+(/usr/share/texmf/tex/latex/misc/moreverb.sty
+Package: moreverb 1997/12/07 v2.2d.2 `more' verbatim facilities
+
+(/usr/share/texmf/tex/latex/tools/verbatim.sty
+Package: verbatim 1997/04/30 v1.5k LaTeX2e package for verbatim enhancements
+\every@verbatim=\toks16
+\verbatim@line=\toks17
+\verbatim@in@stream=\read1
+)
+\verbatim@out=\write3
+\tab@position=\count87
+\tab@size=\count88
+\listing@line=\count89
+)
+(/usr/share/texmf/tex/latex/tools/tabularx.sty
+Package: tabularx 1999/01/07 v2.07 `tabularx' package (DPC)
+\TX@col@width=\dimen111
+\TX@old@table=\dimen112
+\TX@old@col=\dimen113
+\TX@target=\dimen114
+\TX@delta=\dimen115
+\TX@cols=\count90
+\TX@ftn=\toks18
+)
+(/usr/share/texmf/tex/plain/dvips/epsf.tex
+This is `epsf.tex' v2.7k <10 July 1997>
+\epsffilein=\read2
+\epsfframemargin=\dimen116
+\epsfframethickness=\dimen117
+\epsfrsize=\dimen118
+\epsftmp=\dimen119
+\epsftsize=\dimen120
+\epsfxsize=\dimen121
+\epsfysize=\dimen122
+\pspoints=\dimen123
+\epsfnoopenhelp=\toks19
+) (/usr/share/texmf/tex/latex/eepic/epic.sty
+Enhancements to Picture Environment. Version 1.2 - Released June 1, 1986
+\@@multicnt=\count91
+\d@lta=\count92
+\@delta=\dimen124
+\@@delta=\dimen125
+\@gridcnt=\count93
+\@joinkind=\count94
+\@dotgap=\dimen126
+\@ddotgap=\dimen127
+\@x@diff=\count95
+\@y@diff=\count96
+\x@diff=\dimen128
+\y@diff=\dimen129
+\@dotbox=\box26
+\num@segments=\count97
+\num@segmentsi=\count98
+\@datafile=\read3
+) (/usr/share/texmf/tex/latex/eepic/eepic.sty
+Extension to Epic and LaTeX. Version 1.1b - Released Febrary 7, 1988
+\@gphlinewidth=\count99
+\@eepictcnt=\count100
+\@tempdimc=\dimen130
+\maxovaldiam=\dimen131
+\@filltype=\box27
+) (/usr/share/texmf/tex/latex/graphics/epsfig.sty
+Package: epsfig 1999/02/16 v1.7a (e)psfig emulation (SPQR)
+
+(/usr/share/texmf/tex/latex/graphics/graphicx.sty
+Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf/tex/latex/graphics/keyval.sty
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
+\KV@toks@=\toks20
+)
+(/usr/share/texmf/tex/latex/graphics/graphics.sty
+Package: graphics 1999/02/16 v1.0l Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf/tex/latex/graphics/trig.sty
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+)
+(/usr/share/texmf/tex/latex/config/graphics.cfg)
+Package graphics Info: Driver file: dvips.def on input line 80.
+
+(/usr/share/texmf/tex/latex/graphics/dvips.def
+File: dvips.def 1999/02/16 v3.0i Driver-dependant file (DPC,SPQR)
+))
+\Gin@req@height=\dimen132
+\Gin@req@width=\dimen133
+)
+\epsfxsize=\dimen134
+\epsfysize=\dimen135
+)
+(/usr/share/texmf/tex/latex/misc/fancybox.sty
+\c@tocdepth=\count101
+
+Style option: `fancybox' v1.2 <1998/02/27> (tvz)
+\@fancybox=\box28
+\shadowsize=\dimen136
+\@Sbox=\box29
+\do@VerbBox=\toks21
+\the@fancyput=\toks22
+\this@fancyput=\toks23
+\EndVerbatimTokens=\toks24
+\Verbatim@Outfile=\write4
+\Verbatim@Infile=\read4
+) (surround_sound_root.aux)
+\openout1 = `surround_sound_root.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 21.
+LaTeX Font Info:    ... okay on input line 21.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 21.
+LaTeX Font Info:    ... okay on input line 21.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 21.
+LaTeX Font Info:    ... okay on input line 21.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 21.
+LaTeX Font Info:    ... okay on input line 21.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 21.
+LaTeX Font Info:    ... okay on input line 21.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 21.
+LaTeX Font Info:    ... okay on input line 21.
+LaTeX Font Info:    Try loading font information for U+msa on input line 26.
+ (/usr/share/texmf/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 1995/01/05 v2.2e AMS font definitions
+)
+LaTeX Font Info:    Try loading font information for U+msb on input line 26.
+
+(/usr/share/texmf/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 1995/01/05 v2.2e AMS font definitions
+)
+(surround_sound_matlab_exercise.tex
+File: encoder.eps Graphic file (type eps)
+ <encoder.eps>
+File: hilbert.eps Graphic file (type eps)
+ <hilbert.eps> [1
+
+])
+(surround_sound_processor_exercise.tex
+File: decoder.eps Graphic file (type eps)
+ <decoder.eps>) [2]
+(surround_sound_root.aux) ) 
+Here is how much of TeX's memory you used:
+ 1492 strings out of 10901
+ 16762 string characters out of 72569
+ 66679 words of memory out of 263001
+ 4424 multiletter control sequences out of 10000+0
+ 7365 words of font info for 29 fonts, out of 400000 for 1000
+ 14 hyphenation exceptions out of 1000
+ 32i,10n,26p,236b,339s stack positions out of 300i,100n,500p,50000b,4000s
+
+Output written on surround_sound_root.dvi (2 pages, 14300 bytes).

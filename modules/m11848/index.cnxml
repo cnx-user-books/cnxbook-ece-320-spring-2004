@@ -1,0 +1,347 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml"> 
+  <title>Digital Transmitter: Processor Optimization Exercise for Frequency Shift Keying</title>
+  <metadata><md:content-id>undefined</md:content-id><md:title/><md:uuid>17ca0de5-4f86-476f-ac64-c0d0eaa7e87c</md:uuid>
+</metadata>
+
+
+  <content>
+
+    <para id="para1">
+      In this lab you are to implement and optimize the
+      <term>frequency shift keying</term> (<term>FSK</term>) digital
+      transmitter and <term>pseudo-noise</term> (<term>PN</term>)
+      sequence generator shown in <link document="m11849" target-id="trans">this figure</link>.  For the lab grade, you will
+      be judged on the execution time of your system (memory usage
+      need not be minimized).
+    </para>
+
+    <section id="sec1">
+      <title>Implementation</title>
+
+      <para id="para2">
+        You will implement and optimize the complete system shown in
+        <link document="m11849" target-id="trans">this figure</link>.
+        over the next two weeks.  You may write in C, assembly, or any
+        combination of the two; choose whatever will allow you to
+        write the fastest code.  The optimization process will
+        probably be much easier if you plan for optimization before
+        you begin any programming.
+      </para>
+
+<section id="sec1sub0">
+        <title>Reference Implementation</title>
+
+        <para id="para81">
+          We provide for you in Appendix A a complete C implementation of this lab. It consists of the 
+          main C file fsk.c and a C-callable SINE function in SINE.asm. Compile and link this using 
+          the batch file C_ASM.bat by typing "C_ASM fsk SINE" on the command prompt. Load FSK.out onto
+          the DSP, and run the code. Observe the output (Channel 1) on the scope.
+         </para>
+
+         <para id="para82">
+           After taking a look at the source code of this implementation, you'll realize that this is a rather
+           inefficient implementation. It's there to show you what output is expected of your code, and
+           the computational efficiency of your code will be judged against it. While the given code might
+           serve as a starting point, you should do whatever you need to do to make your code as efficient
+           as possible, while producing the same output as the given code. 
+         </para>
+      </section>
+
+
+      <section id="sec1sub1">
+        <title>PN Generator</title>
+
+        <para id="para3">
+          Once you have planned your program strategy, implement the
+          PN generator from <link document="m11849" target-id="pn-gen">Figure 2</link> and verify that it is
+          working.  If you are programming in assembly, you may wish
+          to refer to the description of assembly instructions for
+          logical operations in <cite><cite-title>Section 2-2</cite-title></cite> of the
+          <cite><cite-title>C54x Mnemonic Instruction Set</cite-title></cite> reference.
+          Initialize the shift register to one.
+        </para>
+
+        <para id="para4">
+          In testing the PN generator, you may find the file <link url="http://cnx.rice.edu/modules/m11848/latest/pn_output.mat"><code>v:
+\ece320\54x\dspclib\pn_output.mat</code></link>
+          helpful.  To use it, type <code>load
+          v:\ece320\54x\dspclib\pn_output</code> at the Matlab command
+          prompt.  This will load a vector <code>pn_output</code> into
+          memory.  The vector contains 500 elements, which are the
+          first 500 output bits of the PN generator.  Be prepared to
+          prove to a TA that your PN generator works properly as part
+          of your quiz.
+        </para>
+      </section>
+
+      <section id="sec1sub2">
+        <title>Transmitter</title>
+
+        <para id="para5">
+          For your transmitter implementation you are to use the
+          data-block-to-carrier-frequency mapping in <link document="m11849" target-id="table1">this table</link> and a
+          digital symbol period of
+          <m:math>
+            <m:apply>
+              <m:eq/>
+	      <m:ci>
+		<m:msub>
+		  <m:mi>T</m:mi>
+		  <m:mi>symb</m:mi>
+		</m:msub>
+	      </m:ci>
+	      <m:cn>32</m:cn>
+            </m:apply>
+          </m:math> samples.
+        </para>
+
+        <para id="para6">
+          Viewing the transmitted signal on the oscilloscope may help
+          you determine whether your code works properly, but you
+          should check it more carefully by setting breakpoints in
+          Code Composer and using the <code>Memory</code> option from
+          the <code>View</code> menu to view the contents of memory.
+          The vector signal analyzer (VSA) provides another method of
+          testing.
+        </para>
+      </section>
+
+      <section id="sec1sub3">
+        <title>Testing with the VSA</title>
+
+        <para id="para7">
+          The VSA is an instrument capable of demodulating digital
+          signals.  You may use the VSA to demodulate your FSK signal
+          and display the symbols received.
+        </para>
+	<section id="new1">
+	  <title>Configuring the VSA</title>
+	  <para id="para8">
+	    The VSA is the big HP unit on a cart in the front of the
+	    classroom. Plug the output from the DSP board into the
+	    "Channel 1" jack on the front of the vector signal
+	    analyzer, and then turn on the analyzer and follow these
+	    instructions to display your output:
+	  </para>
+
+	  <para id="para9">
+	    After powering the signal analyzer up, the display will not
+	    be in the correct mode. Use the following sequence of
+	    keypresses to set it up properly: <note type="note" id="idm8672512">If this
+	      doesn't work, hit "Save/Recall," F7 (Catalog), point at
+	      <code>ECE320.STA</code> with the wheel, and hit F5 (Recall
+	      State) and F1 (Enter).</note>
+
+	    <list id="list1" list-type="bulleted">
+	      <item>"Freq" button, followed by F1 (center), 11.025 (on the
+		keypad), and F3 (KHz) </item>
+	      <item>F2 (span), 22, and F3 (KHz) </item>
+	      <item>"Range," then F5 (ch1 autorange up/down)</item>
+	      <item>"Instrument Mode," then F3 (demodulation) </item>
+	    </list>
+	  </para>
+	</section>
+	<section id="new2">
+	  <title>Viewing the signal spectrum on the VSA</title>
+	  <para id="para10">
+	    The VSA is also capable of displaying the spectrum of a
+	    signal.  Hook up the output of your PN generator to the
+	    VSA and set it up properly to view the spectrum of the
+	    random sequence.  Hit "Instrument Mode" and then F1
+	    (Scalar) to see the spectrum.  Note that you can also use
+	    your Lab 4 code for this purpose.
+	  </para>
+
+	  <para id="para11">
+	    Does what you see match the Matlab simulations?
+	  </para>
+	</section>
+      </section>
+
+      <section id="sec1sub4">
+        <title>Optimization</title>
+
+        <para id="para12">
+          One purpose of this lab is to teach optimization and
+          efficient code techniques. For this reason, for your lab
+          grade <emphasis>you will be judged primarily on the total
+          execution time of your system.</emphasis> You are not
+          required to optimize memory use.  Note that by execution
+          time we mean cycle count, not the number of instructions in
+          your program. Remember that several of the TMS320C54xx
+          instructions take more than one cycle. The multicycle
+          instructions are primarily the multi-word instructions,
+          including instructions that take immediates, like
+          <code>stm</code>, and instructions using direct addressing
+          of memory (such as <code>ld *(temp),A</code>). Branch and
+          repeat statements also require several cycles to execute.
+          Most C instructions take more than one cycle. The debugger
+          can be used to determine the exact number of cycles used by
+          your code; ask your TA to demonstrate. However, since the
+          number of execution cycles used by an instruction is usually
+          determined by the number of words in its encoding, the
+          easiest way to estimate the number of cycles used by your
+          code is to count the number of instruction words in the
+          <code>.lst</code> file or the disassembly window in the
+          debugger.
+        </para>
+
+        <para id="para13">
+          We will grade you based on the number of cycles used between
+          the return from the <code>WAITDATA</code> call and the
+          arrival at the next <code>WAITDATA</code> call in assembly,
+          or the return from one WaitAudio call and the arrival at the
+          next WaitAudio call in C. If the number of cycles between
+          the two points is variable, the maximum possible number of
+          cycles will be counted. You must use the
+          <code>core.asm</code> file in
+          <code>v:\ece320\54x\dsplib\core.asm</code> or the C core
+          file in <code>v:\ece320\54x\dspclib\core.asm</code> as
+          provided by the TAs; <emphasis>these files may not be
+          modified</emphasis>.  You explicitly may not change the
+          number of samples read and written by each
+          <code>WAITDATA</code> or WaitAudio call! We reserve the
+          right to test your code by substituting the test vector core
+          file.
+        </para>
+      </section>
+    </section>
+
+    <section id="sec2">
+      <title>Grading</title>
+
+      <para id="para15">
+        This is a two-week lab. Your prelab is due a week after the
+        quiz for Lab 4, and the quizzing occurs two weeks after the
+        quiz for Lab 4.
+      </para>
+
+      <para id="para16">
+        Grading for this lab will be a bit different from past labs:
+
+        <list id="list2" list-type="bulleted">
+          <item> 1 point: Prelab</item>
+          <item> 2 points: Working code, implemented from scratch in assembly
+	    language or C. </item>
+          <item> 5 points: Optimization. These points will be assigned based
+	    on your cycle counts and the optimizations you have made. </item>
+          <item> 2 points: Oral quiz. </item>
+        </list>
+      </para>
+    </section>
+
+    <section id="sec_appendix_a">
+      <title>Appendix A:</title>
+
+      <para id="para17">
+        <link resource="fsk.c">fsk.c</link>
+      </para>
+
+     <para id="para18">
+        <link resource="SINE.asm">SINE.asm</link>
+      </para>
+
+      <para id="para19">
+        <link resource="C_ASM.bat">C_ASM.bat</link>
+      </para>
+
+      <code display="block" id="block1">
+        
+        1    /* ECE320, Lab 5, Reference Implementation (Non-Optimized) */
+        2    /* Michael Frutiger 2/24/04 */
+        3
+        4    #include "v:/ece320/54x/dspclib/core.h"   /* Declarations for core file */
+        5
+        6    main()
+        7    {
+        8        int *Rcvptr,*Xmitptr;                 /* pointers to Xmit &amp; Rcv Bufs   */
+        9        int r1,r2;      // temp random bit storage
+        10        int symbol;           // 0 for [00], 1 for [01], 2 for [10], 3 for [11]
+        11        int n;          // dummy variable
+        12
+        13        int freqs[4] = {9, 13, 21, 17};     // 32*freqs
+        14        int phase[32];
+        15        int output[64];                     // temp output storage
+        16
+        17
+        18        // Initial PN generator register contents
+        19        int seed = 1;
+        20
+        21        // Initial phase
+        22        int prev_phase = 0;
+        23
+        24
+        25        while( 1 )
+        26        {
+        27              /* Wait for a new block of samples */
+        28              WaitAudio(&amp;Rcvptr,&amp;Xmitptr);
+        29
+        30            // Get next two random bits
+        31              r1 = randbit( &amp;seed );
+        32              r2 = randbit( &amp;seed );
+        33              // Convert 2 bit binary number to decimal
+        34              symbol = series2parallel(r1,r2);
+        35
+        36              for (n=0; n&lt;32; n++)
+        37              {
+        38                      phase[n] = ( freqs[symbol]*n + prev_phase ) % 64;   // get into 0 to 64 range
+        39                      if (phase[n] &gt; 32) phase[n]=phase[n]-64;    // get into -32 to 32 range
+        40                      phase[n] = phase[n] * 1024;    // 1024=2^15*1/32
+        41                                                     // [-2^15 2^15] range for use with
+        42                                                     // SINE.asm
+        43              }
+        44              sine(&amp;phase[0], &amp;output[0], 32);                // compute SINE, put result in output[0 - 
+31]
+        45              prev_phase = ( freqs[symbol]*32 + prev_phase ) % 64;   // save current phase offset
+        46
+        47                      // Get next two random bits
+        48              r1 = randbit( &amp;seed );
+        49              r2 = randbit( &amp;seed );
+        50              // Convert 2 bit binary number to decimal
+        51              symbol = series2parallel(r1,r2);
+        52
+        53              for (n=0; n&lt;32; n++)
+        54              {
+        55                      phase[n] = ( freqs[symbol]*n + prev_phase ) % 64;
+        56                      if (phase[n] &gt; 32) phase[n]=phase[n]-64;
+        57                      phase[n] = phase[n] * 1024;
+        58              }
+        59              sine(&amp;phase[0], &amp;output[32], 32);
+        60              prev_phase = ( freqs[symbol]*32 + prev_phase ) % 64;
+        61
+        62
+        63              // Transfer the two symbols to transmit buffer
+        64              for (n=0; n&lt;64; n++)
+        65              {
+        66                      Xmitptr[6*n] = output[n];
+        67              }
+        68
+        69        }
+        70    }
+        71
+        72
+        73    // Converts 2 bit binary number (r2r1) to decimal
+        74    int series2parallel(int r2, int r1)
+        75    {
+        76      if ((r2==0)&amp;&amp;(r1==0)) return 0;
+        77      else if ((r2==0)&amp;&amp;(r1==1)) return 1;
+        78      else if ((r2==1)&amp;&amp;(r1==0)) return 2;
+        79      else return 3;
+        80    }
+        81
+        82    //Returns as an integer a random bit, based on the 15 low-significance bits in iseed (which is
+        83    //modified for the next call).
+        84    int randbit(unsigned int *iseed)
+        85    {
+        86      unsigned int newbit; // The accumulated XORs.
+        87      newbit =  (*iseed &gt;&gt; 14) &amp; 1 ^ (*iseed &gt;&gt; 13)  &amp; 1;  // XOR bit 15 and bit 14
+        88      // Leftshift the seed and put the result of the XORs in its bit 1.
+        89      *iseed=(*iseed &lt;&lt; 1) | newbit;
+        90      return (int) newbit;
+        91    }
+        
+      </code>
+    </section>
+  </content>
+  
+</document>

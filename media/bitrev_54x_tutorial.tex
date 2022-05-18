@@ -1,0 +1,63 @@
+%AUTHOR: Michael Kramer
+The FFT provided requires that the input be in bit-reversed
+order, with alternating real and imaginary components.
+Bit-reversed
+addressing is a convenient way to order input $x[n]$
+into a FFT so that the output $X(k)$ is in sequential order
+(i.e. $X(0), X(1),\ldots X(N-1)$ for an $N$-point FFT).
+The following table illustrates the bit-reversed order for
+an eight-point sequence.
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+Input Order & Binary Representation & Bit-Reversed Representation
+& Output Order \\ \hline
+0 & 000 & 000 & 0 \\
+1 & 001 & 100 & 4 \\
+2 & 010 & 010 & 2 \\
+3 & 011 & 110 & 6 \\
+4 & 100 & 001 & 1 \\
+5 & 101 & 101 & 5 \\
+6 & 110 & 011 & 3 \\
+7 & 111 & 111 & 7 \\
+\hline
+\end{tabular}
+\end{center}
+
+The following routine performs the bit-reversed
+reordering of the input data.  
+The routine assumes that the input is stored in data memory
+starting at the location labeled \verb+_bit_rev_data+, which must 
+be aligned to the least power of two greater than the input buffer 
+length, and consists of 
+alternating real and imaginary parts.  
+Because our input data is going to be purely real in this
+lab, you will have to make sure that you set the imaginary
+parts to zero by zeroing out every other memory location.
+
+\setlength{\baselineskip}{0.39cm}
+\setlength{\parskip}{0.4cm}
+\listinginput{1}{bit_rev.asm}
+\setlength{\baselineskip}{0.5cm}
+\setlength{\parskip}{0.5cm}
+
+As mentioned, in the above code \verb+_bit_rev_data+ is a label indicating
+the start of the input data and \verb+_fft_data+ is a label indicating 
+the start of a circular buffer where the bit-reversed data will be written.
+Note that although \verb+AR7+ is not
+used by the bit-reversed routine directly, it is used extensively
+in the FFT routine to keep track of the start of the FFT data space.
+
+In general, to have a pointer index memory in bit-reversed order, the
+\verb+AR0+ register needs to be set to one-half the length of
+the circular buffer; a statement such as \verb!ARx+0B! is
+used to move the \verb+ARx+ pointer to the next location.
+For more information regarding the bit-reversed
+addressing mode, refer to page 5-18 in the {\em TI-54x CPU and Peripherals}
+manual.  Is it possible to bit-reverse a buffer in place?  For 
+a diagram of the ordering of the data expected by the FFT routine, 
+see Figure 4-10 in the {\em TI-54x Applications Guide}.  Note that the 
+FFT code uses all the pointers available and does not 
+restore the pointers to their original values.
+
+
+

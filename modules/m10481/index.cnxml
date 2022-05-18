@@ -1,0 +1,527 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns:md="http://cnx.rice.edu/mdml" xmlns:bib="http://bibtexml.sf.net/">
+  
+  <title>Adaptive Filtering: LMS Algorithm</title>
+  <metadata>
+  <md:content-id>m10481</md:content-id><md:title>Adaptive Filtering: LMS Algorithm</md:title>
+  <md:abstract>This module introduces adaptive filters through the example of system identification using the LMS algorithm.  The adaptive filter adjusts its coefficients to minimize the mean-square error between its output and that of an unknown system.</md:abstract>
+  <md:uuid>299aad39-2f69-49af-9584-5227b3bcef02</md:uuid>
+</metadata>
+
+<content>
+    <section id="sec1">
+      <title>Introduction</title>
+      <para id="para2">
+	<link target-id="fig1"/> is a block diagram of system
+	identification using adaptive filtering.  The objective is to
+	change (adapt) the coefficients of an FIR filter,
+	<m:math>
+	  <m:ci>W</m:ci>
+	</m:math>, to match as closely as possible the response of an
+	unknown system,
+	<m:math>
+	  <m:ci>H</m:ci>
+	</m:math>.  The unknown system and the adapting filter process
+	the same input signal
+	<m:math>
+	  <m:apply>
+	    <m:ci type="fn" class="discrete">x</m:ci>
+	    <m:ci>n</m:ci>
+	  </m:apply>
+	</m:math> and have outputs 
+	<m:math>
+	  <m:apply>
+	    <m:ci type="fn" class="discrete">d</m:ci>
+	    <m:ci>n</m:ci>
+	  </m:apply>
+	</m:math>(also referred to as the desired signal) and
+	<m:math>
+	  <m:apply>
+	    <m:ci type="fn" class="discrete">y</m:ci>
+	    <m:ci>n</m:ci>
+	  </m:apply>
+	</m:math>.
+      </para>
+      <figure id="fig1">
+	<media id="id1171771732744" alt="">
+          <image src="../../media/sys_id.png" mime-type="image/png"/>
+          <image for="pdf" src="../../media/sys_id.eps" mime-type="application/postscript"/>
+        </media>
+	<caption>
+	  System identification block diagram.</caption>
+      </figure>
+
+      <section id="subsec">
+	<title>Gradient-descent adaptation</title>
+	<para id="para3">
+	  The adaptive filter,
+	  <m:math>
+	    <m:ci>W</m:ci>
+	  </m:math>, is adapted using the least mean-square
+	  algorithm, which is the most widely used adaptive filtering
+	  algorithm.  First the error signal,
+	  <m:math>
+	    <m:apply>
+	      <m:ci type="fn" class="discrete">e</m:ci>
+	      <m:ci>n</m:ci>
+	    </m:apply>
+	  </m:math>, is computed as
+	  <m:math>
+	    <m:apply>
+	      <m:eq/>
+	      <m:apply>
+		<m:ci type="fn" class="discrete">e</m:ci>
+		<m:ci>n</m:ci>
+	      </m:apply>
+	      <m:apply>
+		<m:minus/>
+		<m:apply>
+		  <m:ci type="fn" class="discrete">d</m:ci>
+		  <m:ci>n</m:ci>
+		</m:apply>
+		<m:apply>
+		  <m:ci type="fn" class="discrete">y</m:ci>
+		  <m:ci>n</m:ci>
+		</m:apply>
+	      </m:apply>
+	    </m:apply>
+	  </m:math>, which measures the difference between the output
+	  of the adaptive filter and the output of the unknown system.
+	  On the basis of this measure, the adaptive filter will
+	  change its coefficients in an attempt to reduce the error.
+	  The coefficient update relation is a function of the error
+	  signal squared and is given by
+	  <equation id="eq1">
+	    <m:math>
+	      <m:apply>
+		<m:eq/>
+		<m:apply>
+		  <m:ci type="fn" class="discrete">
+		    <m:msub>
+		      <m:mi>h</m:mi>
+<m:mrow>
+		      <m:mi>n</m:mi>
+<m:mo>+</m:mo>
+<m:mn>1</m:mn>
+</m:mrow>
+		    </m:msub>
+		  </m:ci>
+		  <m:ci>i</m:ci>
+		</m:apply>
+		<m:apply>
+		  <m:plus/>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">
+		      <m:msub>
+			<m:mi>h</m:mi>
+			<m:mi>n</m:mi>
+		      </m:msub>
+		    </m:ci>
+		    <m:ci>i</m:ci>
+		  </m:apply>
+		  <m:apply>
+		    <m:times/>
+		    <m:apply>
+		      <m:divide/>
+		      <m:ci>μ</m:ci>
+		      <m:cn>2</m:cn>
+		    </m:apply>
+		    <m:apply>
+		      <m:minus/>
+		      <m:apply>
+			<m:partialdiff/>
+			<m:bvar>
+			  <m:apply>
+			    <m:ci type="fn" class="discrete">
+			      <m:msub>
+				<m:mi>h</m:mi>
+				<m:mi>n</m:mi>
+			      </m:msub>
+			    </m:ci>
+			    <m:ci>i</m:ci>
+			  </m:apply>
+			</m:bvar>
+			<m:apply>
+			  <m:power/>
+			  <m:apply>
+			    <m:abs/>
+			    <m:ci>e</m:ci>
+			  </m:apply>
+			  <m:cn>2</m:cn>
+			</m:apply>
+		      </m:apply>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:math>
+	  </equation>
+	</para>
+	<para id="para4">
+	  The term inside the parentheses represents the gradient of
+	  the squared-error with respect to the
+	  <m:math>
+	    <m:ci><m:msup> 
+		<m:mi>i</m:mi> 
+		<m:mi>th</m:mi>
+	      </m:msup></m:ci> 
+	  </m:math> coefficient.  The gradient is a vector pointing in
+	  the direction of the change in filter coefficients that will
+	  cause the greatest increase in the error signal.  Because
+	  the goal is to minimize the error, however, <link target-id="eq1"/> updates the filter coefficients in the
+	  direction opposite the gradient; that is why the gradient
+	  term is negated.  The constant
+	  <m:math>
+	    <m:ci>μ</m:ci>
+	  </m:math> is a step-size, which controls the amount of
+	  gradient information used to update each coefficient.  After
+	  repeatedly adjusting each coefficient in the direction
+	  opposite to the gradient of the error, the adaptive filter
+	  should converge; that is, the difference between the unknown
+	  and adaptive systems should get smaller and smaller.
+	</para>
+	<para id="para5">
+	  To express the gradient decent coefficient update equation
+	  in a more usable manner, we can rewrite the derivative of the
+	  squared-error term as
+	  <equation id="new1">
+	    <m:math display="block">
+	      <m:apply>
+		<m:eq/>
+		<m:apply>
+		  <m:partialdiff/>
+		  <m:bvar>
+		    <m:apply>
+		      <m:ci type="fn" class="discrete">h</m:ci>
+		      <m:ci>i</m:ci>
+		    </m:apply>
+		  </m:bvar>
+		  <m:apply>
+		    <m:power/>
+		    <m:apply>
+		      <m:abs/>
+		      <m:ci>e</m:ci>
+		    </m:apply>
+		    <m:cn>2</m:cn>
+		  </m:apply>
+		</m:apply>
+		<m:apply>
+		  <m:times/>
+		  <m:cn>2</m:cn>
+		  <m:apply>
+		    <m:partialdiff/>
+		    <m:bvar>
+		      <m:apply>
+			<m:ci type="fn" class="discrete">h</m:ci>
+			<m:ci>i</m:ci>
+		      </m:apply>
+		    </m:bvar>
+		    <m:ci>e</m:ci>
+		  </m:apply>
+		  <m:ci>e</m:ci>
+		</m:apply>
+		<m:apply>
+		  <m:times/>
+		  <m:cn>2</m:cn>
+		  <m:apply>
+		    <m:partialdiff/>
+		    <m:bvar>
+		      <m:apply>
+			<m:ci type="fn" class="discrete">h</m:ci>
+			<m:ci>i</m:ci>
+		      </m:apply>
+		    </m:bvar>
+		    <m:apply>
+		      <m:minus/>
+		      <m:ci>d</m:ci>
+		      <m:ci>y</m:ci>
+		    </m:apply>
+		  </m:apply>
+		  <m:ci>e</m:ci>
+		</m:apply>	  
+		<m:apply>
+		  <m:apply>
+		    <m:times/>
+		    <m:cn>2</m:cn>
+		    <m:apply>
+		      <m:partialdiff/>
+		      <m:bvar>
+			<m:apply>
+			  <m:ci type="fn" class="discrete">h</m:ci>
+			  <m:ci>i</m:ci>
+			</m:apply>
+		      </m:bvar>
+		      <m:apply>
+			<m:minus/>		   
+			<m:ci>d</m:ci>
+			<m:apply>
+			  <m:sum/>
+			  <m:bvar>
+			    <m:ci>i</m:ci>
+			  </m:bvar>
+			  <m:lowlimit>
+			    <m:cn>0</m:cn>
+			  </m:lowlimit>
+			  <m:uplimit>
+			    <m:apply>
+			      <m:minus/>
+			      <m:ci>N</m:ci>
+			      <m:cn>1</m:cn>
+			    </m:apply>
+			  </m:uplimit>
+			  <m:apply>
+			    <m:times/>
+			    <m:apply>
+			      <m:ci type="fn" class="discrete">h</m:ci>
+			      <m:ci>i</m:ci>
+			    </m:apply>
+			    <m:apply>
+			      <m:ci type="fn" class="discrete">x</m:ci>
+			      <m:apply>
+				<m:minus/>
+				<m:ci>n</m:ci>
+				<m:ci>i</m:ci>
+			      </m:apply>
+			    </m:apply>
+			  </m:apply>
+			</m:apply>
+		      </m:apply>
+		    </m:apply>
+		  </m:apply>
+		  <m:ci>e</m:ci>
+		</m:apply>
+	      </m:apply>
+	    </m:math>
+	  </equation>
+	  
+	  <equation id="eq2">
+	    <m:math>
+	      <m:apply>
+		<m:eq/>
+		<m:apply>
+		  <m:partialdiff/>
+		  <m:bvar>
+		    <m:apply>
+		      <m:ci type="fn" class="discrete">h</m:ci>
+		      <m:ci>i</m:ci>
+		    </m:apply>
+		  </m:bvar>
+		  <m:apply>
+		    <m:power/>
+		    <m:apply>
+		      <m:abs/>
+		      <m:ci>e</m:ci>
+		    </m:apply>
+		    <m:cn>2</m:cn>
+		  </m:apply>
+		</m:apply>
+		<m:apply>
+		  <m:times/>
+		  <m:cn>2</m:cn>
+		  <m:apply>
+		    <m:minus/>
+		    <m:apply>
+		      <m:ci type="fn" class="discrete">x</m:ci>
+		      <m:apply>
+			<m:minus/>
+			<m:ci>n</m:ci>
+			<m:ci>i</m:ci>
+		      </m:apply>
+		    </m:apply>
+		  </m:apply>
+		  <m:ci>e</m:ci>
+		</m:apply>
+	      </m:apply>
+	    </m:math>
+	  </equation>which in turn gives us the final LMS coefficient
+	  update,
+	  <equation id="eq3">
+	    <m:math>
+	      <m:apply>
+		<m:eq/>
+		<m:apply>
+		  <m:ci type="fn" class="discrete">
+		    <m:msub>
+		      <m:mi>h</m:mi>
+		      <m:mi>n+1</m:mi>
+		    </m:msub>
+		  </m:ci>
+		  <m:ci>i</m:ci>
+		</m:apply>
+		<m:apply>
+		  <m:plus/>
+		  <m:apply>
+		    <m:ci type="fn" class="discrete">
+		      <m:msub>
+			<m:mi>h</m:mi>
+			<m:mi>n</m:mi>
+		      </m:msub>
+		    </m:ci>
+		    <m:ci>i</m:ci>
+		  </m:apply>
+		  <m:apply>
+		    <m:times/>
+		    <m:ci>μ</m:ci>
+		    <m:ci>e</m:ci>
+		    <m:apply>
+		      <m:ci type="fn" class="discrete">x</m:ci>
+		      <m:apply>
+			<m:minus/>
+			<m:ci>n</m:ci>
+			<m:ci>i</m:ci>
+		      </m:apply>
+		    </m:apply>
+		  </m:apply>
+		</m:apply>
+	      </m:apply>
+	    </m:math>
+	  </equation>  The step-size 
+	  <m:math>
+	    <m:ci>μ</m:ci>
+	  </m:math> directly affects how quickly the adaptive filter
+	  will converge toward the unknown system.  If
+	  <m:math>
+	    <m:ci>μ</m:ci> 
+	  </m:math> is very small, then the coefficients change only a
+	  small amount at each update, and the filter converges
+	  slowly.  With a larger step-size, more gradient information
+	  is included in each update, and the filter converges more
+	  quickly; however, when the step-size is too large, the
+	  coefficients may change too quickly and the filter will
+	  diverge.  (It is possible in some cases to determine
+	  analytically the largest value of
+	  <m:math>
+	    <m:ci>μ</m:ci>
+	  </m:math> ensuring convergence.)
+	</para>
+      </section>
+
+    </section>
+    <section id="sec3">
+      <title>MATLAB Simulation</title>
+      <para id="para6">
+	Simulate the system identification block diagram
+	shown in <link target-id="fig1"/>.  
+      </para>
+
+      <para id="para6a">
+	Previously in MATLAB, you used the <code>filter</code> command
+	or the <code>conv</code> command to implement shift-invariant
+	filters.  Those commands will not work here because adaptive
+	filters are shift-varying, since the coefficient update
+	equation changes the filter's impulse response at every sample
+	time.  Therefore, implement the system identification block on
+	a sample-by-sample basis with a <code>do</code> loop, similar
+	to the way you might implement a time-domain FIR filter on a
+	DSP.  For the "unknown" system, use the fourth-order,
+	low-pass, elliptical, IIR filter designed for the <link document="m10623">IIR Filtering: Filter-Design Exercise in
+	MATLAB</link>.
+      </para>
+      <para id="para7">
+	Use Gaussian random noise as your input, which can be
+	generated in MATLAB using the command <code>randn</code>.
+	Random white noise provides signal at all digital frequencies
+	to train the adaptive filter.  Simulate the system with an
+	adaptive filter of length 32 and a step-size of
+	<m:math>
+	  <m:cn>0.02</m:cn>
+	</m:math>.  Initialize all of the adaptive filter coefficients
+	to zero.  From your simulation, plot the error (or
+	squared-error) as it evolves over time and plot the frequency
+	response of the adaptive filter coefficients at the end of the
+	simulation.  How well does your adaptive filter match the
+	"unknown" filter?  How long does it take to converge?
+      </para>
+      <para id="para8">
+	Once your simulation is working, experiment with different
+	step-sizes and adaptive filter lengths.
+      </para>
+      
+    </section>
+
+    <section id="sec4">
+      <title>Processor Implementation</title>
+      <para id="para9">
+	Use the same "unknown" filter as you used in the MATLAB simulation.  
+      </para>
+      <para id="para10">
+	Although the coefficient update equation is relatively
+	straightforward, consider using the <code>lms</code>
+	instruction available on the TI processor, which is designed
+	for this application and yields a very efficient
+	implementation of the coefficient update equation.
+      </para>
+      <para id="para11">
+	To generate noise on the DSP, you can use the PN generator
+	from the <link document="m10042">Digital Transmitter:
+	Introduction to Quadrature Phase-Shift Keying</link>, but
+	shift the PN register contents up to make the sign bit random.
+	(If the sign bit is always zero, then the noise will not be
+	zero-mean and this will affect convergence.)  Send the desired
+	signal,
+	<m:math>
+	  <m:apply>
+	    <m:ci type="fn" class="discrete">d</m:ci>
+	    <m:ci>n</m:ci>
+	  </m:apply>
+	</m:math>, the output of the adaptive filter,
+	<m:math>
+	  <m:apply>
+	    <m:ci type="fn" class="discrete">y</m:ci>
+	    <m:ci>n</m:ci>
+	  </m:apply>
+	</m:math>, and the error to the D/A for display on the
+	oscilloscope.
+      </para>
+      <para id="para12">
+	When using the step-size suggested in the MATLAB simulation
+	section, you should notice that the error converges very
+	quickly.  Try an extremely small
+	<m:math>
+	  <m:ci>μ</m:ci>
+	</m:math> so that you can actually watch the amplitude of the
+	error signal decrease towards zero.
+      </para>
+    </section>
+    <section id="sec5">
+      <title>Extensions</title>
+      <para id="para13">
+	If your project requires some modifications to the
+	implementation here, refer to <cite target-id="reference1"><cite-title>Haykin</cite-title></cite> and consider some of the
+	following questions regarding such modifications:
+
+	<list id="list1">
+	  <item>How would the system in <link target-id="fig1"/> change
+	    for different applications? (noise cancellation,
+	    equalization, <foreign>etc.</foreign>)
+	  </item>
+	  <item>
+	    What happens to the error when the step-size is too large
+	    or too small?
+	  </item>
+	  <item>
+	    How does the length of an adaptive FIR filters affect
+	    convergence?
+	  </item>
+	  <item>
+	    What types of coefficient update relations are possible
+	    besides the described LMS algorithm?
+	  </item>
+	</list>
+      </para>
+    </section>
+    
+    
+  </content>
+  <bib:file>
+    <bib:entry id="reference1">
+      <bib:book>
+	<bib:author>S. Haykin</bib:author>
+	<bib:title>Adaptive Filter Theory</bib:title>
+	<bib:publisher>Prentice Hall</bib:publisher>
+	<bib:year>1996</bib:year>
+	<bib:edition>3rd edition</bib:edition>
+      </bib:book>
+    </bib:entry>
+  </bib:file>
+  
+</document>
